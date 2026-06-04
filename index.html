@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Pendataan Gizi Terintegrasi v2</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+</head>
+<body class="bg-gray-100 font-sans text-gray-800">
+
+    <nav class="bg-blue-600 p-4 text-white shadow-md">
+        <div class="container mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
+            <h1 class="text-xl font-bold tracking-wide">🥗 NutriPanitia Pro</h1>
+            <div class="flex gap-2">
+                <button onclick="switchRole('pengguna')" class="hover:bg-blue-700 font-semibold text-xs bg-blue-800 px-3 py-2 rounded transition">Dashboard Pengguna</button>
+                <button onclick="switchRole('lapangan')" class="hover:bg-amber-700 font-semibold text-xs bg-amber-600 px-3 py-2 rounded transition">Panitia Lapangan</button>
+                <button onclick="switchRole('dapur')" class="hover:bg-emerald-700 font-semibold text-xs bg-emerald-600 px-3 py-2 rounded transition">Panitia Dapur</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto my-8 p-4">
+
+        <div id="panel-pengguna" class="dashboard-panel">
+            <h2 class="text-2xl font-bold text-blue-600 mb-6 flex items-center gap-2">🎯 Form Input & Analisis Gizi Pengguna</h2>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="bg-white p-6 rounded-lg shadow-md border-t-4 border-blue-500">
+                    <h3 class="text-lg font-semibold mb-4 text-gray-700 border-b pb-2">Input Data Fisik</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600">Nama Lengkap</label>
+                            <input type="text" id="nama" class="w-full mt-1 p-2 border rounded focus:ring-2 focus:ring-blue-400 outline-none" placeholder="Contoh: Andi Wijaya">
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-600">Berat Badan (kg)</label>
+                                <input type="number" id="bb" class="w-full mt-1 p-2 border rounded focus:ring-2 focus:ring-blue-400 outline-none" placeholder="60">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-600">Tinggi Badan (cm)</label>
+                                <input type="number" id="tb" class="w-full mt-1 p-2 border rounded focus:ring-2 focus:ring-blue-400 outline-none" placeholder="165">
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-600">Usia (Tahun)</label>
+                                <input type="number" id="usia" class="w-full mt-1 p-2 border rounded focus:ring-2 focus:ring-blue-400 outline-none" placeholder="20">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-600">Jenis Kelamin</label>
+                                <select id="jk" class="w-full mt-1 p-2 border rounded focus:ring-2 focus:ring-blue-400 outline-none">
+                                    <option value="pria">Pria</option>
+                                    <option value="wanita">Wanita</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button onclick="prosesDataGizi()" class="w-full bg-blue-600 text-white py-2.5 rounded-lg font-bold hover:bg-blue-700 transition shadow">Hitung & Kirim ke Panitia</button>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg shadow-md border-t-4 border-blue-500 lg:col-span-2 flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-lg font-semibold mb-4 text-gray-700 border-b pb-2">Hasil Analisis Makronutrien & Energi</h3>
+                        
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-center mb-6">
+                            <div class="bg-blue-50 p-3 rounded-lg border border-blue-100">
+                                <p class="text-xs text-gray-500 uppercase font-bold tracking-wider">IMT Anda</p>
+                                <p id="res-imt" class="text-xl font-bold text-blue-600">-</p>
+                                <p id="res-status-imt" class="text-xs font-semibold text-gray-600 mt-1">-</p>
+                            </div>
+                            <div class="bg-green-50 p-3 rounded-lg border border-green-100">
+                                <p class="text-xs text-gray-500 uppercase font-bold tracking-wider">Energi Harian</p>
+                                <p id="res-kalori" class="text-xl font-bold text-green-600">-</p>
+                                <p class="text-xs text-gray-600 mt-1">kkal/hari</p>
+                            </div>
+                            <div class="bg-yellow-50 p-3 rounded-lg border border-yellow-100">
+                                <p class="text-xs text-gray-500 uppercase font-bold tracking-wider">Protein</p>
+                                <p id="res-protein" class="text-xl font-bold text-yellow-600">-</p>
+                                <p class="text-xs text-gray-600 mt-1">gram/hari</p>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-center mb-6">
+                            <div class="bg-purple-50 p-3 rounded-lg border border-purple-100">
+                                <p class="text-xs text-gray-500 uppercase font-bold tracking-wider">Karbohidrat</p>
+                                <p id="res-karbo" class="text-xl font-bold text-purple-600">-</p>
+                                <p class="text-xs text-gray-600 mt-1">gram/hari</p>
+                            </div>
+                            <div class="bg-red-50 p-3 rounded-lg border border-red-100">
+                                <p class="text-xs text-gray-500 uppercase font-bold tracking-wider">Lemak</p>
+                                <p id="res-lemak" class="text-xl font-bold text-red-600">-</p>
+                                <p class="text-xs text-gray-600 mt-1">gram/hari</p>
+                            </div>
+                            <div class="bg-teal-50 p-3 rounded-lg border border-teal-100">
+                                <p class="text-xs text-gray-500 uppercase font-bold tracking-wider">Kebutuhan Serat</p>
+                                <p id="res-serat" class="text-xl font-bold text-teal-600">-</p>
+                                <p class="text-xs text-gray-600 mt-1">gram/hari</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 pt-4 border-t border-gray-100">
+                        <h3 class="text-sm font-bold text-gray-700 mb-2">🍱 Rekomendasi Menu Panitia yang Sesuai:</h3>
+                        <div id="rekomendasi-makanan" class="p-4 bg-gray-50 border border-dashed rounded-lg text-sm text-gray-500 text-center">
+                            Silakan masukkan data diri dan klik hitung untuk melihat menu panitia yang cocok.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <div id="panel-lapangan" class="dashboard-panel hidden">
+            <h2 class="text-2xl font-bold text-amber-600 mb-6">📋 Dashboard Panitia Lapangan (Data & Distribusi)</h2>
+            <div class="bg-white p-6 rounded-lg shadow-md border-t-4 border-amber-500 overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-amber-50 text-amber-800 uppercase text-xs tracking-wider border-b">
+                            <th class="p-3">Nama Peserta</th>
+                            <th class="p-3">IMT (Status)</th>
+                            <th class="p-3">Kalori / Karbo / Prot / Lemak</th>
+                            <th class="p-3">Rekomendasi Paket</th>
+                            <th class="p-3">Status Distribusi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabel-lapangan" class="divide-y text-sm">
+                        </tbody>
+                </table>
+            </div>
+        </div>
+
+
+        <div id="panel-dapur" class="dashboard-panel hidden">
+            <h2 class="text-2xl font-bold text-emerald-600 mb-6">🍳 Dashboard Panitia Dapur (Jumlah Masak Masal)</h2>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="lg:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-4">
+                    
+                    <div class="bg-white p-5 rounded-lg shadow-md border-b-4 border-red-500 flex flex-col justify-between">
+                        <div>
+                            <span class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded font-bold">PAKET A</span>
+                            <h4 class="text-md font-bold mt-2 text-gray-700">Diet / Defisit</h4>
+                            <p class="text-xs text-gray-400 mt-1">Cocok untuk: Overweight</p>
+                        </div>
+                        <div class="mt-6">
+                            <p class="text-xs text-gray-500 uppercase">Jumlah Harus Dimasak</p>
+                            <p id="qty-paket-a" class="text-4xl font-black text-red-600 mt-1">0 <span class="text-sm font-normal text-gray-500">Porsi</span></p>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-lg shadow-md border-b-4 border-blue-500 flex flex-col justify-between">
+                        <div>
+                            <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded font-bold">PAKET B</span>
+                            <h4 class="text-md font-bold mt-2 text-gray-700">Seimbang / Normal</h4>
+                            <p class="text-xs text-gray-400 mt-1">Cocok untuk: Normal</p>
+                        </div>
+                        <div class="mt-6">
+                            <p class="text-xs text-gray-500 uppercase">Jumlah Harus Dimasak</p>
+                            <p id="qty-paket-b" class="text-4xl font-black text-blue-600 mt-1">0 <span class="text-sm font-normal text-gray-500">Porsi</span></p>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-lg shadow-md border-b-4 border-emerald-500 flex flex-col justify-between">
+                        <div>
+                            <span class="bg-emerald-100 text-emerald-800 text-xs px-2 py-1 rounded font-bold">PAKET C</span>
+                            <h4 class="text-md font-bold mt-2 text-gray-700">Tinggi Kalori / Bulking</h4>
+                            <p class="text-xs text-gray-400 mt-1">Cocok untuk: Underweight</p>
+                        </div>
+                        <div class="mt-6">
+                            <p class="text-xs text-gray-500 uppercase">Jumlah Harus Dimasak</p>
+                            <p id="qty-paket-c" class="text-4xl font-black text-emerald-600 mt-1">0 <span class="text-sm font-normal text-gray-500">Porsi</span></p>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="bg-white p-6 rounded-lg shadow-md border-t-4 border-emerald-600 flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-lg font-bold text-gray-700 border-b pb-2 mb-4">Total Produksi Keseluruhan</h3>
+                        <div class="bg-gray-50 p-4 rounded-lg text-center">
+                            <p class="text-xs text-gray-400 uppercase font-semibold">Total Seluruh Paket</p>
+                            <p id="total-produksi-global" class="text-5xl font-black text-gray-800 my-2">0</p>
+                            <p class="text-xs text-gray-500">Porsi Makanan Terdata</p>
+                        </div>
+                    </div>
+                    <p class="text-xs text-gray-400 italic mt-4 text-center">Angka di atas otomatis terhitung sinkron dengan jumlah pendaftar di lapangan.</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Data acuan pembagian paket makanan panitia dapur
+        const daftarMenuDapur = {
+            "Paket A": { nama: "Paket A (Defisit Kalori)", kalori: 450, prot: 30, cocokUntuk: "Kelebihan Berat Badan" },
+            "Paket B": { nama: "Paket B (Nutrisi Seimbang)", kalori: 650, prot: 45, cocokUntuk: "Normal" },
+            "Paket C": { nama: "Paket C (Tinggi Kalori/Protein)", kalori: 850, prot: 55, cocokUntuk: "Kekurangan Berat Badan" }
+        };
+
+        // Database lokal simulasi (Array menampung banyak data, diisi data awal sebagai contoh)
+        let dataPesertaGlobal = [
+            { nama: "Rian Hidayat", imt: 28.1, statusImt: "Kelebihan Berat Badan", kalori: 2300, karbo: 316, protein: 75, lemak: 64, serat: 30, paket: "Paket A", diambil: false },
+            { nama: "Siti Aminah", imt: 21.3, statusImt: "Normal", kalori: 1950, karbo: 268, protein: 60, lemak: 54, serat: 30, paket: "Paket B", diambil: true }
+        ];
+
+        // Navigasi Halaman
+        function switchRole(role) {
+            document.querySelectorAll('.dashboard-panel').forEach(panel => panel.classList.add('hidden'));
+            if(role === 'pengguna') document.getElementById('panel-pengguna').classList.remove('hidden');
+            if(role === 'lapangan') {
+                document.getElementById('panel-lapangan').classList.remove('hidden');
+                renderLapangan();
+            }
+            if(role === 'dapur') {
+                document.getElementById('panel-dapur').classList.remove('hidden');
+                renderDapur();
+            }
+        }
+
+        // Hitung Gizi Lengkap & Masukkan ke Database Panitia Lapangan
+        function prosesDataGizi() {
+            const nama = document.getElementById('nama').value.trim();
+            const bb = parseFloat(document.getElementById('bb').value);
+            const tb = parseFloat(document.getElementById('tb').value) / 100;
+            const usia = parseInt(document.getElementById('usia').value);
+            const jk = document.getElementById('jk').value;
+
+            if(!nama || !bb || !tb || !usia) {
+                alert("Silakan lengkapi seluruh form terlebih dahulu!");
+                return;
+            }
+
+            // 1. Hitung IMT & Statusnya
+            const imt = (bb / (tb * tb)).toFixed(1);
+            let statusImt = "";
+            let paketDipilih = "";
+
+            if (imt < 18.5) {
+                statusImt = "Kekurangan Berat Badan";
+                paketDipilih = "Paket C";
+            } else if (imt >= 18.5 && imt < 25) {
+                statusImt = "Normal";
+                paketDipilih = "Paket B";
+            } else {
+                statusImt = "Kelebihan Berat Badan";
+                paketDipilih = "Paket A";
+            }
+
+            // 2. Hitung Energi Kalori (Mifflin-St Jeor)
+            let bmr = (jk === 'pria') 
+                ? (10 * bb) + (6.25 * (tb * 100)) - (5 * usia) + 5
+                : (10 * bb) + (6.25 * (tb * 100)) - (5 * usia) - 161;
+            
+            const totalKalori = Math.round(bmr * 1.3); // Aktivitas tingkat sedang
+
+            // 3. Breakdown Zat Gizi Makro & Mikro Tambahan
+            const protein = Math.round(bb * 1.2);                 // 1.2g per kg Berat Badan
+            const karbohidrat = Math.round((totalKalori * 0.55) / 4); // 55% kalori dari karbohidrat (1g = 4 kkal)
+            const lemak = Math.round((totalKalori * 0.25) / 9);        // 25% kalori dari lemak (1g = 9 kkal)
+            const serat = 30; // Angka Kecukupan Gizi (AKG) Serat harian standar rata-rata
+
+            // Tampilkan hasil kalkulasi secara visual di layar pengguna
+            document.getElementById('res-imt').innerText = imt;
+            document.getElementById('res-status-imt').innerText = statusImt;
+            document.getElementById('res-kalori').innerText = totalKalori;
+            document.getElementById('res-protein').innerText = protein;
+            document.getElementById('res-karbo').innerText = karbohidrat;
+            document.getElementById('res-lemak').innerText = lemak;
+            document.getElementById('res-serat').innerText = serat;
+
+            // Tampilkan menu rekomendasi makanan milik dapur yang sesuai
+            const menu = daftarMenuDapur[paketDipilih];
+            document.getElementById('rekomendasi-makanan').innerHTML = `
+                <div class="bg-emerald-50 text-emerald-900 p-3 rounded-lg border border-emerald-200 text-left">
+                    <p class="font-bold text-sm text-emerald-800">Direkomendasikan: ${menu.nama}</p>
+                    <p class="text-xs mt-1 text-gray-600">Porsi makan dari dapur panitia disesuaikan khusus untuk kondisi tubuh <b>${statusImt}</b> dengan porsi makro seimbang.</p>
+                </div>
+            `;
+
+            // 4. SIMPAN DATA KE DATABASE PANITIA (PUSH DATA BARU)
+            dataPesertaGlobal.push({
+                nama: nama,
+                imt: parseFloat(imt),
+                statusImt: statusImt,
+                kalori: totalKalori,
+                karbo: karbohidrat,
+                protein: protein,
+                lemak: lemak,
+                serat: serat,
+                paket: paketDipilih,
+                diambil: false
+            });
+
+            alert(`Data gizi ${nama} berhasil dihitung dan dikirim ke Panitia Lapangan & Dapur!`);
+            
+            // Reset input form nama biar siap buat input orang selanjutnya
+            document.getElementById('nama').value = "";
+        }
+
+        // Render Data Tabel di Sisi Lapangan
+        function renderLapangan() {
+            const tbody = document.getElementById('tabel-lapangan');
+            tbody.innerHTML = "";
+            
+            if(dataPesertaGlobal.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-gray-400">Belum ada data peserta masuk.</td></tr>`;
+                return;
+            }
+
+            dataPesertaGlobal.forEach((p, index) => {
+                tbody.innerHTML += `
+                    <tr class="border-b hover:bg-gray-50 transition">
+                        <td class="p-3 font-semibold text-gray-800">${p.nama}</td>
+                        <td class="p-3">
+                            <span class="block font-medium">${p.imt}</span>
+                            <span class="text-xs text-gray-500">${p.statusImt}</span>
+                        </td>
+                        <td class="p-3 text-xs space-y-0.5 text-gray-600">
+                            <div>🔥 Kalori: <b>${p.kalori} kkal</b></div>
+                            <div>🍞 Karbo: <b>${p.karbo}g</b> | 🥩 Prot: <b>${p.protein}g</b> | 🥑 Lemak: <b>${p.lemak}g</b> | 🥦 Serat: <b>${p.serat}g</b></div>
+                        </td>
+                        <td class="p-3">
+                            <span class="px-2 py-1 text-xs font-bold rounded ${
+                                p.paket === 'Paket A' ? 'bg-red-100 text-red-800' : 
+                                p.paket === 'Paket B' ? 'bg-blue-100 text-blue-800' : 'bg-emerald-100 text-emerald-800'
+                            }">${p.paket}</span>
+                        </td>
+                        <td class="p-3">
+                            <button onclick="toggleStatusAmbil(${index})" class="px-3 py-1.5 text-xs rounded-md font-bold shadow-sm transition ${
+                                p.diambil ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                            }">
+                                ${p.diambil ? 'Sudah Diambil ✓' : 'Belum Diambil'}
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        // Berfungsi mengubah status logistik distribusi di lapangan
+        function toggleStatusAmbil(index) {
+            dataPesertaGlobal[index].diambil = !dataPesertaGlobal[index].diambil;
+            renderLapangan();
+        }
+
+        // Hitung Otomatis dan Tampilkan Kebutuhan Paket di Dashboard Dapur
+        function renderDapur() {
+            let porsiA = 0;
+            let porsiB = 0;
+            let porsiC = 0;
+
+            // Perulangan untuk menghitung total distribusi tiap jenis paket
+            dataPesertaGlobal.forEach(p => {
+                if (p.paket === "Paket A") porsiA++;
+                if (p.paket === "Paket B") porsiB++;
+                if (p.paket === "Paket C") porsiC++;
+            });
+
+            // Tembak angka ke komponen HTML Dashboard Dapur
+            document.getElementById('qty-paket-a').innerHTML = `${porsiA} <span class="text-sm font-normal text-gray-500">Porsi</span>`;
+            document.getElementById('qty-paket-b').innerHTML = `${porsiB} <span class="text-sm font-normal text-gray-500">Porsi</span>`;
+            document.getElementById('qty-paket-c').innerHTML = `${porsiC} <span class="text-sm font-normal text-gray-500">Porsi</span>`;
+            
+            // Total gabungan seluruh porsi
+            document.getElementById('total-produksi-global').innerText = dataPesertaGlobal.length;
+        }
+    </script>
+</body>
+</html>
