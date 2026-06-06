@@ -3,209 +3,305 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem Pendataan Gizi Terintegrasi v2</title>
+    <title>NutriPanitia Pro - Sistem Tanggap Darurat Gizi Bencana</title>
+    <!-- Tailwind CSS Modern -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-</head>
-<body class="bg-gray-100 font-sans text-gray-800">
+    <!-- Library QR Code Generator (CDN resmi & aman) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
-    <nav class="bg-blue-600 p-4 text-white shadow-md">
+    <!-- CSS SINKRONISASI TAMPILAN DAN CETAK STIKER -->
+    <style>
+        /* Sembunyikan area cetak dari layar monitor agar tidak dobel */
+        #area-cetak-stiker {
+            display: none !important;
+        }
+
+        @media print {
+            /* Sembunyikan seluruh elemen website di monitor saat print berlangsung */
+            body *, .dashboard-panel, nav, button, input, select, h2 {
+                display: none !important;
+            }
+            /* Hanya cetak kotak stiker ini saja ke printer */
+            #area-cetak-stiker, #area-cetak-stiker * {
+                display: block !important;
+            }
+            #area-cetak-stiker {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 6cm; /* Ukuran stiker ompreng */
+                padding: 12px;
+                border: 1px dashed #000;
+                text-align: center;
+                background: #fff !important;
+            }
+            #qrcode-print canvas, #qrcode-print img {
+                display: inline-block !important;
+                margin: 0 auto;
+            }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 font-sans text-slate-800 antialiased min-h-screen">
+
+    <!-- NAVIGASI UTAMA -->
+    <nav class="bg-gradient-to-r from-emerald-600 via-teal-600 to-blue-600 p-4 text-white shadow-lg sticky top-0 z-50">
         <div class="container mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
-            <h1 class="text-xl font-bold tracking-wide">🥗 NutriPanitia Pro</h1>
-            <div class="flex gap-2">
-                <button onclick="switchRole('pengguna')" class="hover:bg-blue-700 font-semibold text-xs bg-blue-800 px-3 py-2 rounded transition">Dashboard Pengguna</button>
-                <button onclick="switchRole('lapangan')" class="hover:bg-amber-700 font-semibold text-xs bg-amber-600 px-3 py-2 rounded transition">Panitia Lapangan</button>
-                <button onclick="switchRole('dapur')" class="hover:bg-emerald-700 font-semibold text-xs bg-emerald-600 px-3 py-2 rounded transition">Panitia Dapur</button>
+            <div class="flex items-center gap-2">
+                <span class="text-2xl">🥗</span>
+                <div>
+                    <h1 class="text-lg font-black tracking-wider leading-none">NutriPanitia Pro</h1>
+                    <p class="text-[10px] text-emerald-100 font-medium tracking-tight">Sistem Gizi Tanggap Darurat Bencana</p>
+                </div>
+            </div>
+            <div class="flex gap-2 bg-black/10 p-1 rounded-xl backdrop-blur-xs">
+                <button onclick="switchRole('pengguna')" class="hover:bg-white/10 font-bold text-xs px-3 py-2 rounded-lg transition-all cursor-pointer">Dashboard Pengguna</button>
+                <button onclick="switchRole('lapangan')" class="hover:bg-white/10 font-bold text-xs px-3 py-2 rounded-lg transition-all cursor-pointer">Panitia Lapangan</button>
+                <button onclick="switchRole('dapur')" class="hover:bg-white/10 font-bold text-xs px-3 py-2 rounded-lg transition-all cursor-pointer">Panitia Dapur</button>
             </div>
         </div>
     </nav>
 
     <div class="container mx-auto my-8 p-4">
 
-        <div id="panel-pengguna" class="dashboard-panel">
-            <h2 class="text-2xl font-bold text-blue-600 mb-6 flex items-center gap-2">🎯 Form Input & Analisis Gizi Pengguna</h2>
+        <!-- ================= DASHBOARD PENGGUNA (KEBUN & GIZI) ================= -->
+        <div id="panel-pengguna" class="dashboard-panel transition-all duration-300">
             
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div class="bg-white p-6 rounded-lg shadow-md border-t-4 border-blue-500">
-                    <h3 class="text-lg font-semibold mb-4 text-gray-700 border-b pb-2">Input Data Fisik</h3>
-                    <div class="space-y-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-600">Nama Lengkap</label>
-                            <input type="text" id="nama" class="w-full mt-1 p-2 border rounded focus:ring-2 focus:ring-blue-400 outline-none" placeholder="Contoh: Andi Wijaya">
+            <!-- SISTEM LOGIN / QR SCANNER MOCKUP -->
+            <div id="area-login-qr" class="max-w-md mx-auto bg-white p-6 rounded-2xl shadow-xl border border-slate-100 text-center mb-8">
+                <span class="text-4xl">📱</span>
+                <h3 class="text-xl font-bold mt-2 text-slate-800">Scan QR Ompreng Pengguna</h3>
+                <p class="text-xs text-slate-500 mt-1 mb-4">Arahkan kamera ponsel ke QR Code stiker ompreng Anda untuk masuk ke Kebun Nutrisi.</p>
+                <div class="bg-slate-100 p-4 rounded-xl border border-dashed border-slate-300 inline-block mb-4">
+                    <div class="w-40 h-40 flex items-center justify-center text-slate-400 text-xs font-mono">
+                        [ KAMERA SCANNER MOCKUP ]
+                    </div>
+                </div>
+                <button onclick="simulasiLoginSukses()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 rounded-xl text-sm font-bold shadow-md transition-all cursor-pointer">
+                    Simulasi Scan QR Pengguna (Budi/Rian)
+                </button>
+            </div>
+
+            <!-- KONTEN UTAMA DASHBOARD PENGGUNA -->
+            <div id="konten-pengguna" class="hidden space-y-6">
+                <!-- GAMIFIKASI KEBUN NUTRISI -->
+                <div class="bg-gradient-to-b from-sky-100 to-emerald-50 p-6 rounded-3xl shadow-md border border-emerald-100 relative overflow-hidden">
+                    <div class="absolute top-2 right-2 bg-emerald-600 text-white text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded-lg">
+                        Kebun Sehatku
+                    </div>
+                    <h3 class="text-lg font-black text-emerald-800 flex items-center gap-1">🏡 Kebun & Pohon Gizi <span id="nama-pemilik-kebun" class="text-blue-600"></span></h3>
+                    <p class="text-xs text-slate-600">Habiskan porsi makanan bencana yang diberikan panitia untuk menumbuhkan daun baru di pohonmu!</p>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6 items-center">
+                        <div class="bg-white/60 backdrop-blur-xs p-4 rounded-2xl border border-white text-center shadow-xs">
+                            <span class="text-xs text-slate-500 font-bold uppercase tracking-wider block">Kondisi Pohon Anda</span>
+                            <div class="my-3 text-5xl transition-all duration-300" id="visual-pohon">🌱</div>
+                            <span id="txt-daun-pohon" class="text-xs font-extrabold bg-emerald-100 text-emerald-800 px-2.5 py-1 rounded-full">0 Helai Daun</span>
                         </div>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-600">Berat Badan (kg)</label>
-                                <input type="number" id="bb" class="w-full mt-1 p-2 border rounded focus:ring-2 focus:ring-blue-400 outline-none" placeholder="60">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-600">Tinggi Badan (cm)</label>
-                                <input type="number" id="tb" class="w-full mt-1 p-2 border rounded focus:ring-2 focus:ring-blue-400 outline-none" placeholder="165">
-                            </div>
+                        
+                        <!-- PESAN PENYEMANGAT KHUSUS KONDISI BENCANA -->
+                        <div class="md:col-span-2 bg-white/80 p-4 rounded-2xl border border-emerald-100 flex flex-col justify-center">
+                            <span class="text-xs text-emerald-700 font-bold uppercase tracking-wider">💌 Pesan Penyemangat Nutrisi:</span>
+                            <p id="pesan-motivasi-bencana" class="text-sm font-medium text-slate-700 mt-2 italic leading-relaxed">
+                                "Silakan pilih atau masukkan data gizi Anda untuk melihat pesan energi."
+                            </p>
                         </div>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-600">Usia (Tahun)</label>
-                                <input type="number" id="usia" class="w-full mt-1 p-2 border rounded focus:ring-2 focus:ring-blue-400 outline-none" placeholder="20">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-600">Jenis Kelamin</label>
-                                <select id="jk" class="w-full mt-1 p-2 border rounded focus:ring-2 focus:ring-blue-400 outline-none">
-                                    <option value="pria">Pria</option>
-                                    <option value="wanita">Wanita</option>
-                                </select>
-                            </div>
-                        </div>
-                        <button onclick="prosesDataGizi()" class="w-full bg-blue-600 text-white py-2.5 rounded-lg font-bold hover:bg-blue-700 transition shadow">Hitung & Kirim ke Panitia</button>
                     </div>
                 </div>
 
-                <div class="bg-white p-6 rounded-lg shadow-md border-t-4 border-blue-500 lg:col-span-2 flex flex-col justify-between">
-                    <div>
-                        <h3 class="text-lg font-semibold mb-4 text-gray-700 border-b pb-2">Hasil Analisis Makronutrien & Energi</h3>
-                        
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-center mb-6">
-                            <div class="bg-blue-50 p-3 rounded-lg border border-blue-100">
-                                <p class="text-xs text-gray-500 uppercase font-bold tracking-wider">IMT Anda</p>
-                                <p id="res-imt" class="text-xl font-bold text-blue-600">-</p>
-                                <p id="res-status-imt" class="text-xs font-semibold text-gray-600 mt-1">-</p>
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Form Input Registrasi -->
+                    <div class="bg-white p-6 rounded-2xl shadow-md border-t-4 border-blue-500">
+                        <h3 class="text-lg font-bold mb-4 text-slate-700 border-b pb-2 flex items-center gap-1">📝 Registrasi Pengguna Baru</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase">Nama Lengkap</label>
+                                <input type="text" id="nama" class="w-full mt-1 p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:bg-white outline-none transition-all" placeholder="Contoh: Andi Wijaya">
                             </div>
-                            <div class="bg-green-50 p-3 rounded-lg border border-green-100">
-                                <p class="text-xs text-gray-500 uppercase font-bold tracking-wider">Energi Harian</p>
-                                <p id="res-kalori" class="text-xl font-bold text-green-600">-</p>
-                                <p class="text-xs text-gray-600 mt-1">kkal/hari</p>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase">Berat Badan (kg)</label>
+                                    <input type="number" id="bb" class="w-full mt-1 p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:bg-white outline-none transition-all" placeholder="60">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase">Tinggi Badan (cm)</label>
+                                    <input type="number" id="tb" class="w-full mt-1 p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:bg-white outline-none transition-all" placeholder="165">
+                                </div>
                             </div>
-                            <div class="bg-yellow-50 p-3 rounded-lg border border-yellow-100">
-                                <p class="text-xs text-gray-500 uppercase font-bold tracking-wider">Protein</p>
-                                <p id="res-protein" class="text-xl font-bold text-yellow-600">-</p>
-                                <p class="text-xs text-gray-600 mt-1">gram/hari</p>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase">Usia (Tahun)</label>
+                                    <input type="number" id="usia" class="w-full mt-1 p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:bg-white outline-none transition-all" placeholder="20">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase">Jenis Kelamin</label>
+                                    <select id="jk" class="w-full mt-1 p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:bg-white outline-none transition-all">
+                                        <option value="pria">Pria</option>
+                                        <option value="wanita">Wanita</option>
+                                    </select>
+                                </div>
                             </div>
-                        </div>
-
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-center mb-6">
-                            <div class="bg-purple-50 p-3 rounded-lg border border-purple-100">
-                                <p class="text-xs text-gray-500 uppercase font-bold tracking-wider">Karbohidrat</p>
-                                <p id="res-karbo" class="text-xl font-bold text-purple-600">-</p>
-                                <p class="text-xs text-gray-600 mt-1">gram/hari</p>
-                            </div>
-                            <div class="bg-red-50 p-3 rounded-lg border border-red-100">
-                                <p class="text-xs text-gray-500 uppercase font-bold tracking-wider">Lemak</p>
-                                <p id="res-lemak" class="text-xl font-bold text-red-600">-</p>
-                                <p class="text-xs text-gray-600 mt-1">gram/hari</p>
-                            </div>
-                            <div class="bg-teal-50 p-3 rounded-lg border border-teal-100">
-                                <p class="text-xs text-gray-500 uppercase font-bold tracking-wider">Kebutuhan Serat</p>
-                                <p id="res-serat" class="text-xl font-bold text-teal-600">-</p>
-                                <p class="text-xs text-gray-600 mt-1">gram/hari</p>
-                            </div>
+                            <button onclick="prosesDataGizi()" class="w-full bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 transition shadow-md cursor-pointer">
+                                Hitung & Cetak QR Ompreng
+                            </button>
                         </div>
                     </div>
 
-                    <div class="mt-4 pt-4 border-t border-gray-100">
-                        <h3 class="text-sm font-bold text-gray-700 mb-2">🍱 Rekomendasi Menu Panitia yang Sesuai:</h3>
-                        <div id="rekomendasi-makanan" class="p-4 bg-gray-50 border border-dashed rounded-lg text-sm text-gray-500 text-center">
-                            Silakan masukkan data diri dan klik hitung untuk melihat menu panitia yang cocok.
+                    <!-- Hasil Gizi Lengkap -->
+                    <div class="bg-white p-6 rounded-2xl shadow-md border-t-4 border-blue-500 lg:col-span-2 flex flex-col justify-between">
+                        <div>
+                            <h3 class="text-lg font-bold mb-4 text-slate-700 border-b pb-2 flex items-center gap-1">📊 Hasil Analisis Makronutrien & Energi</h3>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-center mb-4">
+                                <div class="bg-blue-50/60 p-3 rounded-xl border border-blue-100">
+                                    <p class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">IMT Anda</p>
+                                    <p id="res-imt" class="text-xl font-black text-blue-600">-</p>
+                                    <p id="res-status-imt" class="text-[11px] font-bold text-slate-600 mt-0.5">-</p>
+                                </div>
+                                <div class="bg-green-50/60 p-3 rounded-xl border border-green-100">
+                                    <p class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Energi Harian</p>
+                                    <p id="res-kalori" class="text-xl font-black text-green-600">-</p>
+                                    <p class="text-[11px] font-medium text-slate-500 mt-0.5">kkal/hari</p>
+                                </div>
+                                <div class="bg-yellow-50/60 p-3 rounded-xl border border-yellow-100">
+                                    <p class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Protein</p>
+                                    <p id="res-protein" class="text-xl font-black text-yellow-600">-</p>
+                                    <p class="text-[11px] font-medium text-slate-500 mt-0.5">gram/hari</p>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-center mb-4">
+                                <div class="bg-purple-50/60 p-3 rounded-xl border border-purple-100">
+                                    <p class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Karbohidrat</p>
+                                    <p id="res-karbo" class="text-xl font-black text-purple-600">-</p>
+                                    <p class="text-[11px] font-medium text-slate-500 mt-0.5">gram/hari</p>
+                                </div>
+                                <div class="bg-red-50/60 p-3 rounded-xl border border-red-100">
+                                    <p class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Lemak</p>
+                                    <p id="res-lemak" class="text-xl font-black text-red-600">-</p>
+                                    <p class="text-[11px] font-medium text-slate-500 mt-0.5">gram/hari</p>
+                                </div>
+                                <div class="bg-teal-50/60 p-3 rounded-xl border border-teal-100">
+                                    <p class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Kebutuhan Serat</p>
+                                    <p id="res-serat" class="text-xl font-black text-teal-600">-</p>
+                                    <p class="text-[11px] font-medium text-slate-500 mt-0.5">gram/hari</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 pt-4 border-t border-slate-100">
+                            <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">🍱 Rekomendasi Menu Panitia yang Sesuai:</h3>
+                            <div id="rekomendasi-makanan" class="p-4 bg-slate-50 border border-dashed border-slate-200 rounded-xl text-sm text-slate-400 text-center font-medium">
+                                Silakan masukkan data diri dan klik hitung untuk melihat menu panitia yang cocok.
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
+
         </div>
 
 
+        <!-- ================= DASHBOARD PANITIA LAPANGAN ================= -->
         <div id="panel-lapangan" class="dashboard-panel hidden">
-            <h2 class="text-2xl font-bold text-amber-600 mb-6">📋 Dashboard Panitia Lapangan (Data & Distribusi)</h2>
-            <div class="bg-white p-6 rounded-lg shadow-md border-t-4 border-amber-500 overflow-x-auto">
+            <h2 class="text-2xl font-bold text-amber-600 mb-6 flex items-center gap-1">📋 Dashboard Panitia Lapangan (Data & Distribusi)</h2>
+            <div class="bg-white p-6 rounded-2xl shadow-md border-t-4 border-amber-500 overflow-x-auto">
                 <table class="w-full text-left border-collapse">
                     <thead>
-                        <tr class="bg-amber-50 text-amber-800 uppercase text-xs tracking-wider border-b">
-                            <th class="p-3">Nama Peserta</th>
+                        <tr class="bg-amber-50 text-amber-800 uppercase text-[10px] tracking-widest font-bold border-b border-amber-100">
+                            <th class="p-3">Nama Peserta / Cetak Stiker</th>
                             <th class="p-3">IMT (Status)</th>
                             <th class="p-3">Kalori / Karbo / Prot / Lemak</th>
                             <th class="p-3">Rekomendasi Paket</th>
-                            <th class="p-3">Status Distribusi</th>
+                            <th class="p-3 text-center">Status Distribusi & Habis Makan</th>
                         </tr>
                     </thead>
-                    <tbody id="tabel-lapangan" class="divide-y text-sm">
-                        </tbody>
+                    <tbody id="tabel-lapangan" class="divide-y divide-slate-100 text-sm">
+                        <!-- Data Masuk Secara Dinamis -->
+                    </tbody>
                 </table>
             </div>
         </div>
 
 
+        <!-- ================= DASHBOARD PANITIA DAPUR ================= -->
         <div id="panel-dapur" class="dashboard-panel hidden">
-            <h2 class="text-2xl font-bold text-emerald-600 mb-6">🍳 Dashboard Panitia Dapur (Jumlah Masak Masal)</h2>
-            
+            <h2 class="text-2xl font-bold text-emerald-600 mb-6 flex items-center gap-1">🍳 Dashboard Panitia Dapur (Jumlah Masak Masal)</h2>
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div class="lg:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-4">
-                    
-                    <div class="bg-white p-5 rounded-lg shadow-md border-b-4 border-red-500 flex flex-col justify-between">
+                <div class="lg:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div class="bg-white p-5 rounded-2xl shadow-md border-b-4 border-red-500 flex flex-col justify-between hover:shadow-lg transition-all">
                         <div>
-                            <span class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded font-bold">PAKET A</span>
-                            <h4 class="text-md font-bold mt-2 text-gray-700">Diet / Defisit</h4>
-                            <p class="text-xs text-gray-400 mt-1">Cocok untuk: Overweight</p>
+                            <span class="bg-red-100 text-red-800 text-[10px] px-2.5 py-1 rounded-lg font-bold tracking-wider">PAKET A</span>
+                            <h4 class="text-md font-bold mt-2 text-slate-700">Diet / Defisit</h4>
+                            <p class="text-[11px] text-slate-400 mt-0.5">Cocok untuk: Overweight</p>
                         </div>
                         <div class="mt-6">
-                            <p class="text-xs text-gray-500 uppercase">Jumlah Harus Dimasak</p>
-                            <p id="qty-paket-a" class="text-4xl font-black text-red-600 mt-1">0 <span class="text-sm font-normal text-gray-500">Porsi</span></p>
+                            <p class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Jumlah Harus Dimasak</p>
+                            <p id="qty-paket-a" class="text-4xl font-black text-red-600 mt-1">0 <span class="text-xs font-normal text-slate-400">Porsi</span></p>
                         </div>
                     </div>
-
-                    <div class="bg-white p-5 rounded-lg shadow-md border-b-4 border-blue-500 flex flex-col justify-between">
+                    <div class="bg-white p-5 rounded-2xl shadow-md border-b-4 border-blue-500 flex flex-col justify-between hover:shadow-lg transition-all">
                         <div>
-                            <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded font-bold">PAKET B</span>
-                            <h4 class="text-md font-bold mt-2 text-gray-700">Seimbang / Normal</h4>
-                            <p class="text-xs text-gray-400 mt-1">Cocok untuk: Normal</p>
+                            <span class="bg-blue-100 text-blue-800 text-[10px] px-2.5 py-1 rounded-lg font-bold tracking-wider">PAKET B</span>
+                            <h4 class="text-md font-bold mt-2 text-slate-700">Seimbang / Normal</h4>
+                            <p class="text-[11px] text-slate-400 mt-0.5">Cocok untuk: Normal</p>
                         </div>
                         <div class="mt-6">
-                            <p class="text-xs text-gray-500 uppercase">Jumlah Harus Dimasak</p>
-                            <p id="qty-paket-b" class="text-4xl font-black text-blue-600 mt-1">0 <span class="text-sm font-normal text-gray-500">Porsi</span></p>
+                            <p class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Jumlah Harus Dimasak</p>
+                            <p id="qty-paket-b" class="text-4xl font-black text-blue-600 mt-1">0 <span class="text-xs font-normal text-slate-400">Porsi</span></p>
                         </div>
                     </div>
-
-                    <div class="bg-white p-5 rounded-lg shadow-md border-b-4 border-emerald-500 flex flex-col justify-between">
+                    <div class="bg-white p-5 rounded-2xl shadow-md border-b-4 border-emerald-500 flex flex-col justify-between hover:shadow-lg transition-all">
                         <div>
-                            <span class="bg-emerald-100 text-emerald-800 text-xs px-2 py-1 rounded font-bold">PAKET C</span>
-                            <h4 class="text-md font-bold mt-2 text-gray-700">Tinggi Kalori / Bulking</h4>
-                            <p class="text-xs text-gray-400 mt-1">Cocok untuk: Underweight</p>
+                            <span class="bg-emerald-100 text-emerald-800 text-[10px] px-2.5 py-1 rounded-lg font-bold tracking-wider">PAKET C</span>
+                            <h4 class="text-md font-bold mt-2 text-slate-700">Tinggi Kalori / Bulking</h4>
+                            <p class="text-[11px] text-slate-400 mt-0.5">Cocok untuk: Underweight</p>
                         </div>
                         <div class="mt-6">
-                            <p class="text-xs text-gray-500 uppercase">Jumlah Harus Dimasak</p>
-                            <p id="qty-paket-c" class="text-4xl font-black text-emerald-600 mt-1">0 <span class="text-sm font-normal text-gray-500">Porsi</span></p>
+                            <p class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Jumlah Harus Dimasak</p>
+                            <p id="qty-paket-c" class="text-4xl font-black text-emerald-600 mt-1">0 <span class="text-xs font-normal text-slate-400">Porsi</span></p>
                         </div>
                     </div>
-
                 </div>
 
-                <div class="bg-white p-6 rounded-lg shadow-md border-t-4 border-emerald-600 flex flex-col justify-between">
+                <div class="bg-white p-6 rounded-2xl shadow-md border-t-4 border-emerald-600 flex flex-col justify-between">
                     <div>
-                        <h3 class="text-lg font-bold text-gray-700 border-b pb-2 mb-4">Total Produksi Keseluruhan</h3>
-                        <div class="bg-gray-50 p-4 rounded-lg text-center">
-                            <p class="text-xs text-gray-400 uppercase font-semibold">Total Seluruh Paket</p>
-                            <p id="total-produksi-global" class="text-5xl font-black text-gray-800 my-2">0</p>
-                            <p class="text-xs text-gray-500">Porsi Makanan Terdata</p>
+                        <h3 class="text-md font-bold text-slate-700 border-b pb-2 mb-4">Total Produksi Keseluruhan</h3>
+                        <div class="bg-slate-50 p-4 rounded-xl text-center border border-slate-100">
+                            <p class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Total Seluruh Paket</p>
+                            <p id="total-produksi-global" class="text-5xl font-black text-slate-800 my-2">0</p>
+                            <p class="text-xs font-semibold text-emerald-600 bg-emerald-50 py-1 rounded-lg inline-block px-3">Porsi Makanan Terdata</p>
                         </div>
                     </div>
-                    <p class="text-xs text-gray-400 italic mt-4 text-center">Angka di atas otomatis terhitung sinkron dengan jumlah pendaftar di lapangan.</p>
+                    <p class="text-[11px] text-slate-400 italic mt-4 text-center">Angka di atas otomatis terhitung sinkron dengan jumlah pendaftar di lapangan.</p>
                 </div>
             </div>
         </div>
 
     </div>
 
+    <!-- ================= AREA SINKRONISASI CETAK PRINTER (TERSEMBUNYI SEMENTARA) ================= -->
+    <div id="area-cetak-stiker">
+        <h4 style="font-size: 14px; font-weight: bold; margin-bottom: 2px;">NUTRI-PANITIA BENCANA</h4>
+        <div id="qrcode-print" style="margin: 5px 0;"></div>
+        <p id="nama-print" style="font-size: 12px; font-weight: bold; text-transform: uppercase; margin-top: 2px; border-top: 1px solid #000; padding-top: 2px;"></p>
+        <p id="paket-print" style="font-size: 10px; font-style: italic; color: #333;"></p>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
     <script>
-        // Data acuan pembagian paket makanan panitia dapur
         const daftarMenuDapur = {
             "Paket A": { nama: "Paket A (Defisit Kalori)", kalori: 450, prot: 30, cocokUntuk: "Kelebihan Berat Badan" },
             "Paket B": { nama: "Paket B (Nutrisi Seimbang)", kalori: 650, prot: 45, cocokUntuk: "Normal" },
             "Paket C": { nama: "Paket C (Tinggi Kalori/Protein)", kalori: 850, prot: 55, cocokUntuk: "Kekurangan Berat Badan" }
         };
 
-        // Database lokal simulasi (Array menampung banyak data, diisi data awal sebagai contoh)
         let dataPesertaGlobal = [
-            { nama: "Rian Hidayat", imt: 28.1, statusImt: "Kelebihan Berat Badan", kalori: 2300, karbo: 316, protein: 75, lemak: 64, serat: 30, paket: "Paket A", diambil: false },
-            { nama: "Siti Aminah", imt: 21.3, statusImt: "Normal", kalori: 1950, karbo: 268, protein: 60, lemak: 54, serat: 30, paket: "Paket B", diambil: true }
+            { nama: "Rian Hidayat", imt: 28.1, statusImt: "Kelebihan Berat Badan", kalori: 2300, karbo: 316, protein: 75, lemak: 64, serat: 30, paket: "Paket A", diambil: false, daun: 1, habisMakan: true },
+            { nama: "Siti Aminah", imt: 21.3, statusImt: "Normal", kalori: 1950, karbo: 268, protein: 60, lemak: 54, serat: 30, paket: "Paket B", diambil: true, daun: 0, habisMakan: false }
         ];
 
-        // Navigasi Halaman
+        let userLoginIndex = null;
+
         function switchRole(role) {
             document.querySelectorAll('.dashboard-panel').forEach(panel => panel.classList.add('hidden'));
             if(role === 'pengguna') document.getElementById('panel-pengguna').classList.remove('hidden');
@@ -219,7 +315,39 @@
             }
         }
 
-        // Hitung Gizi Lengkap & Masukkan ke Database Panitia Lapangan
+        function simulasiLoginSukses() {
+            userLoginIndex = 0; 
+            document.getElementById('area-login-qr').classList.add('hidden');
+            document.getElementById('konten-pengguna').classList.remove('hidden');
+            const user = dataPesertaGlobal[userLoginIndex];
+            document.getElementById('nama').value = user.nama;
+            updateKebunPengguna();
+        }
+
+        function updateKebunPengguna() {
+            if(userLoginIndex === null) return;
+            const user = dataPesertaGlobal[userLoginIndex];
+
+            document.getElementById('nama-pemilik-kebun').innerText = `(${user.nama})`;
+            document.getElementById('txt-daun-pohon').innerText = `${user.daun} Helai Daun`;
+
+            let visual = "🌱";
+            if(user.daun === 1) visual = "🌿";
+            if(user.daun === 2) visual = "🌳";
+            if(user.daun >= 3) visual = "🌳✨🥞";
+            document.getElementById('visual-pohon').innerText = visual;
+
+            let pesan = "";
+            if (user.statusImt === "Kekurangan Berat Badan" || user.kalori > 2000) {
+                pesan = `👋 Halo ${user.nama}, saat berada di posko darurat ini, tubuhmu memerlukan energi ekstra sebanyak ${user.kalori} kkal untuk menjaga imunitas tetap kuat. Tetap semangat, habiskan jatah makananmu dari panitia ya agar pohonmu tumbuh rimbun!`;
+            } else if (user.statusImt === "Kelebihan Berat Badan") {
+                pesan = `👋 Halo ${user.nama}, porsi makanmu sudah diatur seimbang dengan kalori terkontrol oleh tim dapur agar kamu tetap bugar selama masa pemulihan darurat ini. Yuk, habiskan porsi sehatmu hari ini!`;
+            } else {
+                pesan = `👋 Halo ${user.nama}, kondisi fisikmu terpantau ideal dan sangat baik! Jaga terus performa tubuhmu di pengungsian dengan menghabiskan menu Paket Seimbang dari panitia dapur ya.`;
+            }
+            document.getElementById('pesan-motivasi-bencana').innerText = pesan;
+        }
+
         function prosesDataGizi() {
             const nama = document.getElementById('nama').value.trim();
             const bb = parseFloat(document.getElementById('bb').value);
@@ -232,7 +360,6 @@
                 return;
             }
 
-            // 1. Hitung IMT & Statusnya
             const imt = (bb / (tb * tb)).toFixed(1);
             let statusImt = "";
             let paketDipilih = "";
@@ -248,20 +375,16 @@
                 paketDipilih = "Paket A";
             }
 
-            // 2. Hitung Energi Kalori (Mifflin-St Jeor)
             let bmr = (jk === 'pria') 
                 ? (10 * bb) + (6.25 * (tb * 100)) - (5 * usia) + 5
                 : (10 * bb) + (6.25 * (tb * 100)) - (5 * usia) - 161;
             
-            const totalKalori = Math.round(bmr * 1.3); // Aktivitas tingkat sedang
+            const totalKalori = Math.round(bmr * 1.3);
+            const protein = Math.round(bb * 1.2);                 
+            const karbohidrat = Math.round((totalKalori * 0.55) / 4); 
+            const lemak = Math.round((totalKalori * 0.25) / 9);        
+            const serat = 30; 
 
-            // 3. Breakdown Zat Gizi Makro & Mikro Tambahan
-            const protein = Math.round(bb * 1.2);                 // 1.2g per kg Berat Badan
-            const karbohidrat = Math.round((totalKalori * 0.55) / 4); // 55% kalori dari karbohidrat (1g = 4 kkal)
-            const lemak = Math.round((totalKalori * 0.25) / 9);        // 25% kalori dari lemak (1g = 9 kkal)
-            const serat = 30; // Angka Kecukupan Gizi (AKG) Serat harian standar rata-rata
-
-            // Tampilkan hasil kalkulasi secara visual di layar pengguna
             document.getElementById('res-imt').innerText = imt;
             document.getElementById('res-status-imt').innerText = statusImt;
             document.getElementById('res-kalori').innerText = totalKalori;
@@ -270,100 +393,132 @@
             document.getElementById('res-lemak').innerText = lemak;
             document.getElementById('res-serat').innerText = serat;
 
-            // Tampilkan menu rekomendasi makanan milik dapur yang sesuai
             const menu = daftarMenuDapur[paketDipilih];
             document.getElementById('rekomendasi-makanan').innerHTML = `
-                <div class="bg-emerald-50 text-emerald-900 p-3 rounded-lg border border-emerald-200 text-left">
-                    <p class="font-bold text-sm text-emerald-800">Direkomendasikan: ${menu.nama}</p>
-                    <p class="text-xs mt-1 text-gray-600">Porsi makan dari dapur panitia disesuaikan khusus untuk kondisi tubuh <b>${statusImt}</b> dengan porsi makro seimbang.</p>
+                <div class="bg-emerald-50 text-emerald-900 p-4 rounded-xl border border-emerald-200 text-left">
+                    <p class="font-bold text-sm text-emerald-800 flex items-center gap-1">✨ Direkomendasikan: ${menu.nama}</p>
+                    <p class="text-xs mt-1 text-slate-600 leading-relaxed">Wadah makan Anda wajib ditempel stiker QR Code untuk validasi menu.</p>
                 </div>
             `;
 
-            // 4. SIMPAN DATA KE DATABASE PANITIA (PUSH DATA BARU)
             dataPesertaGlobal.push({
-                nama: nama,
-                imt: parseFloat(imt),
-                statusImt: statusImt,
-                kalori: totalKalori,
-                karbo: karbohidrat,
-                protein: protein,
-                lemak: lemak,
-                serat: serat,
-                paket: paketDipilih,
-                diambil: false
+                nama: nama, imt: parseFloat(imt), statusImt: statusImt, kalori: totalKalori,
+                karbo: karbohidrat, protein: protein, lemak: lemak, serat: serat, paket: paketDipilih,
+                diambil: false, daun: 0, habisMakan: false
             });
 
-            alert(`Data gizi ${nama} berhasil dihitung dan dikirim ke Panitia Lapangan & Dapur!`);
-            
-            // Reset input form nama biar siap buat input orang selanjutnya
-            document.getElementById('nama').value = "";
+            userLoginIndex = dataPesertaGlobal.length - 1;
+            updateKebunPengguna();
+
+            // PANGGIL SISTEM STIKER CETAK
+            printStikerOmpreng(nama, paketDipilih);
         }
 
-        // Render Data Tabel di Sisi Lapangan
+        // FUNGSI UTAMA: MEMBUAT 1 QR CODE HANYA UNTUK DIKIRIM KE MESIN CETAK
+        function printStikerOmpreng(namaUser, paket) {
+            document.getElementById('qrcode-print').innerHTML = ""; // Bersihkan QR lama
+            
+            document.getElementById('nama-print').innerText = namaUser;
+            document.getElementById('paket-print').innerText = "Menu: " + paket;
+            
+            // Generate 1 QR Code di area tersembunyi
+            new QRCode(document.getElementById("qrcode-print"), {
+                text: "LOGIN_MUTRI_PANITIA_" + namaUser.toUpperCase().replace(/\s+/g, '_'),
+                width: 110,
+                height: 110
+            });
+
+            // Beri jeda sebentar agar browser selesai menggambar QR Code, lalu print
+            setTimeout(() => {
+                window.print();
+            }, 300);
+        }
+
         function renderLapangan() {
             const tbody = document.getElementById('tabel-lapangan');
             tbody.innerHTML = "";
             
             if(dataPesertaGlobal.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-gray-400">Belum ada data peserta masuk.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-400">Belum ada data peserta masuk.</td></tr>`;
                 return;
             }
 
             dataPesertaGlobal.forEach((p, index) => {
                 tbody.innerHTML += `
-                    <tr class="border-b hover:bg-gray-50 transition">
-                        <td class="p-3 font-semibold text-gray-800">${p.nama}</td>
+                    <tr class="border-b border-slate-100 hover:bg-slate-50 transition-all">
                         <td class="p-3">
-                            <span class="block font-medium">${p.imt}</span>
-                            <span class="text-xs text-gray-500">${p.statusImt}</span>
-                        </td>
-                        <td class="p-3 text-xs space-y-0.5 text-gray-600">
-                            <div>🔥 Kalori: <b>${p.kalori} kkal</b></div>
-                            <div>🍞 Karbo: <b>${p.karbo}g</b> | 🥩 Prot: <b>${p.protein}g</b> | 🥑 Lemak: <b>${p.lemak}g</b> | 🥦 Serat: <b>${p.serat}g</b></div>
+                            <div class="font-bold text-slate-800">${p.nama}</div>
+                            <button onclick="printStikerOmpreng('${p.nama}', '${p.paket}')" class="mt-1 bg-blue-50 hover:bg-blue-100 text-blue-600 font-bold text-[11px] px-2.5 py-1 rounded-lg border border-blue-200 transition-all cursor-pointer flex items-center gap-1">
+                                🖨️ Cetak Ulang Stiker Ompreng
+                            </button>
                         </td>
                         <td class="p-3">
-                            <span class="px-2 py-1 text-xs font-bold rounded ${
-                                p.paket === 'Paket A' ? 'bg-red-100 text-red-800' : 
-                                p.paket === 'Paket B' ? 'bg-blue-100 text-blue-800' : 'bg-emerald-100 text-emerald-800'
+                            <span class="block font-bold text-slate-700">${p.imt}</span>
+                            <span class="text-xs text-slate-500 font-medium">${p.statusImt}</span>
+                        </td>
+                        <td class="p-3 text-[11px] space-y-1 text-slate-600 font-medium">
+                            <div class="text-slate-700">🔥 Kalori: <b class="text-green-600">${p.kalori} kkal</b></div>
+                            <div class="bg-slate-100 p-1 rounded-md text-[10px] text-slate-500">🍞 K: <b>${p.karbo}g</b> | 🥩 P: <b>${p.protein}g</b> | 🥑 L: <b>${p.lemak}g</b></div>
+                        </td>
+                        <td class="p-3">
+                            <span class="px-2.5 py-1 text-xs font-black rounded-lg ${
+                                p.paket === 'Paket A' ? 'bg-red-50 text-red-700 border border-red-200' : 
+                                p.paket === 'Paket B' ? 'bg-blue-50 text-blue-700 border border-blue-200' : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                             }">${p.paket}</span>
                         </td>
                         <td class="p-3">
-                            <button onclick="toggleStatusAmbil(${index})" class="px-3 py-1.5 text-xs rounded-md font-bold shadow-sm transition ${
-                                p.diambil ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                            }">
-                                ${p.diambil ? 'Sudah Diambil ✓' : 'Belum Diambil'}
-                            </button>
+                            <div class="flex flex-col sm:flex-row items-center justify-center gap-2">
+                                <button onclick="toggleStatusAmbil(${index})" class="w-full sm:w-auto px-3 py-1.5 text-xs rounded-lg font-bold shadow-xs transition-all cursor-pointer ${
+                                    p.diambil ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-slate-200 text-slate-700 hover:bg-slate-300'
+                                }">
+                                    ${p.diambil ? 'Sudah Diambil ✓' : 'Belum Diambil'}
+                                </button>
+                                
+                                <button onclick="konfirmasiHabisMakan(${index})" class="w-full sm:w-auto px-3 py-1.5 text-xs rounded-lg font-bold shadow-xs transition-all cursor-pointer ${
+                                    p.habisMakan ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100'
+                                }" ${!p.diambil ? 'disabled title="Ambil makanan dulu"' : ''}>
+                                    ${p.habisMakan ? 'Makanan Habis (Daun +1)' : 'Konfirmasi Habis'}
+                                </button>
+                            </div>
                         </td>
                     </tr>
                 `;
             });
         }
 
-        // Berfungsi mengubah status logistik distribusi di lapangan
         function toggleStatusAmbil(index) {
             dataPesertaGlobal[index].diambil = !dataPesertaGlobal[index].diambil;
+            if(!dataPesertaGlobal[index].diambil) {
+                dataPesertaGlobal[index].habisMakan = false;
+                dataPesertaGlobal[index].daun = 0;
+            }
             renderLapangan();
+            updateKebunPengguna();
         }
 
-        // Hitung Otomatis dan Tampilkan Kebutuhan Paket di Dashboard Dapur
-        function renderDapur() {
-            let porsiA = 0;
-            let porsiB = 0;
-            let porsiC = 0;
+        function konfirmasiHabisMakan(index) {
+            if(!dataPesertaGlobal[index].diambil) return;
+            
+            dataPesertaGlobal[index].habisMakan = !dataPesertaGlobal[index].habisMakan;
+            if(dataPesertaGlobal[index].habisMakan) {
+                dataPesertaGlobal[index].daun += 1;
+            } else {
+                dataPesertaGlobal[index].daun = Math.max(0, dataPesertaGlobal[index].daun - 1);
+            }
+            renderLapangan();
+            updateKebunPengguna();
+        }
 
-            // Perulangan untuk menghitung total distribusi tiap jenis paket
+        function renderDapur() {
+            let porsiA = 0; let porsiB = 0; let porsiC = 0;
             dataPesertaGlobal.forEach(p => {
                 if (p.paket === "Paket A") porsiA++;
                 if (p.paket === "Paket B") porsiB++;
                 if (p.paket === "Paket C") porsiC++;
             });
-
-            // Tembak angka ke komponen HTML Dashboard Dapur
-            document.getElementById('qty-paket-a').innerHTML = `${porsiA} <span class="text-sm font-normal text-gray-500">Porsi</span>`;
-            document.getElementById('qty-paket-b').innerHTML = `${porsiB} <span class="text-sm font-normal text-gray-500">Porsi</span>`;
-            document.getElementById('qty-paket-c').innerHTML = `${porsiC} <span class="text-sm font-normal text-gray-500">Porsi</span>`;
-            
-            // Total gabungan seluruh porsi
+            document.getElementById('qty-paket-a').innerHTML = `${porsiA} <span class="text-xs font-normal text-slate-400">Porsi</span>`;
+            document.getElementById('qty-paket-b').innerHTML = `${porsiB} <span class="text-xs font-normal text-slate-400">Porsi</span>`;
+            document.getElementById('qty-paket-c').innerHTML = `${porsiC} <span class="text-xs font-normal text-slate-400">Porsi</span>`;
             document.getElementById('total-produksi-global').innerText = dataPesertaGlobal.length;
         }
     </script>
