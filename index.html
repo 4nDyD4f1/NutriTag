@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NutriPanitia Pro - Sistem Tanggap Darurat Gizi Bencana</title>
+    <title>NutriTag - Sistem Tanggap Darurat Gizi Bencana</title>
     <!-- Tailwind CSS Modern -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <!-- Library QR Code Generator (CDN resmi & aman) -->
@@ -11,17 +11,14 @@
 
     <!-- CSS SINKRONISASI TAMPILAN DAN CETAK STIKER -->
     <style>
-        /* Sembunyikan area cetak dari layar monitor agar tidak dobel */
         #area-cetak-stiker {
             display: none !important;
         }
 
         @media print {
-            /* Sembunyikan seluruh elemen website di monitor saat print berlangsung */
             body *, .dashboard-panel, nav, button, input, select, h2 {
                 display: none !important;
             }
-            /* Hanya cetak kotak stiker ini saja ke printer */
             #area-cetak-stiker, #area-cetak-stiker * {
                 display: block !important;
             }
@@ -29,7 +26,7 @@
                 position: absolute;
                 left: 0;
                 top: 0;
-                width: 6cm; /* Ukuran stiker ompreng */
+                width: 6cm; 
                 padding: 12px;
                 border: 1px dashed #000;
                 text-align: center;
@@ -50,7 +47,7 @@
             <div class="flex items-center gap-2">
                 <span class="text-2xl">🥗</span>
                 <div>
-                    <h1 class="text-lg font-black tracking-wider leading-none">NutriPanitia Pro</h1>
+                    <h1 class="text-lg font-black tracking-wider leading-none">NutriTag</h1>
                     <p class="text-[10px] text-emerald-100 font-medium tracking-tight">Sistem Gizi Tanggap Darurat Bencana</p>
                 </div>
             </div>
@@ -64,25 +61,64 @@
 
     <div class="container mx-auto my-8 p-4">
 
-        <!-- ================= DASHBOARD PENGGUNA (KEBUN & GIZI) ================= -->
+        <!-- ================= PANEL LOGIN PANITIA ================= -->
+        <div id="panel-login-panitia" class="dashboard-panel hidden max-w-md mx-auto bg-white p-6 rounded-2xl shadow-xl border border-slate-100 text-center mb-8">
+            <span class="text-4xl" id="ikon-login">🔐</span>
+            <h3 class="text-xl font-bold mt-2 text-slate-800" id="judul-login">Login Panitia</h3>
+            <p class="text-xs text-slate-500 mt-1 mb-4">Silakan masukkan kredensial untuk mengakses dashboard.</p>
+            
+            <div class="space-y-4 text-left">
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase">Username</label>
+                    <input type="text" id="login-username" class="w-full mt-1 p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:bg-white outline-none transition-all">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase">Password</label>
+                    <input type="password" id="login-password" class="w-full mt-1 p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:bg-white outline-none transition-all">
+                </div>
+                <button onclick="prosesLoginPanitia()" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-xl text-sm font-bold shadow-md transition-all cursor-pointer mt-2">
+                    Masuk ke Dashboard
+                </button>
+            </div>
+            <p class="text-[10px] text-slate-400 mt-4 italic" id="hint-login"></p>
+        </div>
+
+        <!-- ================= DASHBOARD PENGGUNA (HANYA KEBUN & LOGIN) ================= -->
         <div id="panel-pengguna" class="dashboard-panel transition-all duration-300">
             
-            <!-- SISTEM LOGIN / QR SCANNER MOCKUP -->
+            <!-- SISTEM LOGIN / QR SCANNER PENGGUNA -->
             <div id="area-login-qr" class="max-w-md mx-auto bg-white p-6 rounded-2xl shadow-xl border border-slate-100 text-center mb-8">
                 <span class="text-4xl">📱</span>
-                <h3 class="text-xl font-bold mt-2 text-slate-800">Scan QR Ompreng Pengguna</h3>
-                <p class="text-xs text-slate-500 mt-1 mb-4">Arahkan kamera ponsel ke QR Code stiker ompreng Anda untuk masuk ke Kebun Nutrisi.</p>
+                <h3 class="text-xl font-bold mt-2 text-slate-800">Masuk ke Kebun Gizi</h3>
+                <p class="text-xs text-slate-500 mt-1 mb-4">Arahkan kamera ponsel ke QR Code stiker ompreng Anda.</p>
+                
                 <div class="bg-slate-100 p-4 rounded-xl border border-dashed border-slate-300 inline-block mb-4">
                     <div class="w-40 h-40 flex items-center justify-center text-slate-400 text-xs font-mono">
                         [ KAMERA SCANNER MOCKUP ]
                     </div>
                 </div>
-                <button onclick="simulasiLoginSukses()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 rounded-xl text-sm font-bold shadow-md transition-all cursor-pointer">
-                    Simulasi Scan QR Pengguna (Budi/Rian)
-                </button>
+
+                <div class="my-4 flex items-center before:mt-0.5 before:flex-1 before:border-t before:border-slate-200 after:mt-0.5 after:flex-1 after:border-t after:border-slate-200">
+                    <span class="mx-4 mb-0 text-center text-xs font-bold text-slate-400 uppercase">ATAU LOGIN MANUAL</span>
+                </div>
+
+                <!-- Opsi Login Manual -->
+                <div class="space-y-3 text-left mb-4">
+                    <div>
+                        <input type="text" id="user-manual-username" placeholder="Username dari Panitia" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-emerald-400 focus:bg-white outline-none transition-all">
+                    </div>
+                    <div>
+                        <input type="password" id="user-manual-password" placeholder="Password PIN" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-emerald-400 focus:bg-white outline-none transition-all">
+                    </div>
+                    <button onclick="loginManualPengguna()" class="w-full bg-slate-800 hover:bg-slate-900 text-white py-2.5 rounded-xl text-sm font-bold shadow-md transition-all cursor-pointer">
+                        Masuk dengan Username
+                    </button>
+                </div>
+
+                <p class="text-[10px] text-slate-400 italic">Gunakan user "rian" pass "123" untuk percobaan login.</p>
             </div>
 
-            <!-- KONTEN UTAMA DASHBOARD PENGGUNA -->
+            <!-- KONTEN UTAMA DASHBOARD PENGGUNA (KEBUN) -->
             <div id="konten-pengguna" class="hidden space-y-6">
                 <!-- GAMIFIKASI KEBUN NUTRISI -->
                 <div class="bg-gradient-to-b from-sky-100 to-emerald-50 p-6 rounded-3xl shadow-md border border-emerald-100 relative overflow-hidden">
@@ -99,7 +135,7 @@
                             <span id="txt-daun-pohon" class="text-xs font-extrabold bg-emerald-100 text-emerald-800 px-2.5 py-1 rounded-full">0 Helai Daun</span>
                         </div>
                         
-                        <!-- PESAN PENYEMANGAT KHUSUS KONDISI BENCANA -->
+                        <!-- PESAN PENYEMANGAT -->
                         <div class="md:col-span-2 bg-white/80 p-4 rounded-2xl border border-emerald-100 flex flex-col justify-center">
                             <span class="text-xs text-emerald-700 font-bold uppercase tracking-wider">💌 Pesan Penyemangat Nutrisi:</span>
                             <p id="pesan-motivasi-bencana" class="text-sm font-medium text-slate-700 mt-2 italic leading-relaxed">
@@ -107,93 +143,9 @@
                             </p>
                         </div>
                     </div>
-                </div>
-
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <!-- Form Input Registrasi -->
-                    <div class="bg-white p-6 rounded-2xl shadow-md border-t-4 border-blue-500">
-                        <h3 class="text-lg font-bold mb-4 text-slate-700 border-b pb-2 flex items-center gap-1">📝 Registrasi Pengguna Baru</h3>
-                        <div class="space-y-4">
-                            <div>
-                                <label class="block text-xs font-bold text-slate-500 uppercase">Nama Lengkap</label>
-                                <input type="text" id="nama" class="w-full mt-1 p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:bg-white outline-none transition-all" placeholder="Contoh: Andi Wijaya">
-                            </div>
-                            <div class="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label class="block text-xs font-bold text-slate-500 uppercase">Berat Badan (kg)</label>
-                                    <input type="number" id="bb" class="w-full mt-1 p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:bg-white outline-none transition-all" placeholder="60">
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-bold text-slate-500 uppercase">Tinggi Badan (cm)</label>
-                                    <input type="number" id="tb" class="w-full mt-1 p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:bg-white outline-none transition-all" placeholder="165">
-                                </div>
-                            </div>
-                            <div class="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label class="block text-xs font-bold text-slate-500 uppercase">Usia (Tahun)</label>
-                                    <input type="number" id="usia" class="w-full mt-1 p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:bg-white outline-none transition-all" placeholder="20">
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-bold text-slate-500 uppercase">Jenis Kelamin</label>
-                                    <select id="jk" class="w-full mt-1 p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:bg-white outline-none transition-all">
-                                        <option value="pria">Pria</option>
-                                        <option value="wanita">Wanita</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <button onclick="prosesDataGizi()" class="w-full bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 transition shadow-md cursor-pointer">
-                                Hitung & Cetak QR Ompreng
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Hasil Gizi Lengkap -->
-                    <div class="bg-white p-6 rounded-2xl shadow-md border-t-4 border-blue-500 lg:col-span-2 flex flex-col justify-between">
-                        <div>
-                            <h3 class="text-lg font-bold mb-4 text-slate-700 border-b pb-2 flex items-center gap-1">📊 Hasil Analisis Makronutrien & Energi</h3>
-                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-center mb-4">
-                                <div class="bg-blue-50/60 p-3 rounded-xl border border-blue-100">
-                                    <p class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">IMT Anda</p>
-                                    <p id="res-imt" class="text-xl font-black text-blue-600">-</p>
-                                    <p id="res-status-imt" class="text-[11px] font-bold text-slate-600 mt-0.5">-</p>
-                                </div>
-                                <div class="bg-green-50/60 p-3 rounded-xl border border-green-100">
-                                    <p class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Energi Harian</p>
-                                    <p id="res-kalori" class="text-xl font-black text-green-600">-</p>
-                                    <p class="text-[11px] font-medium text-slate-500 mt-0.5">kkal/hari</p>
-                                </div>
-                                <div class="bg-yellow-50/60 p-3 rounded-xl border border-yellow-100">
-                                    <p class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Protein</p>
-                                    <p id="res-protein" class="text-xl font-black text-yellow-600">-</p>
-                                    <p class="text-[11px] font-medium text-slate-500 mt-0.5">gram/hari</p>
-                                </div>
-                            </div>
-
-                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-center mb-4">
-                                <div class="bg-purple-50/60 p-3 rounded-xl border border-purple-100">
-                                    <p class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Karbohidrat</p>
-                                    <p id="res-karbo" class="text-xl font-black text-purple-600">-</p>
-                                    <p class="text-[11px] font-medium text-slate-500 mt-0.5">gram/hari</p>
-                                </div>
-                                <div class="bg-red-50/60 p-3 rounded-xl border border-red-100">
-                                    <p class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Lemak</p>
-                                    <p id="res-lemak" class="text-xl font-black text-red-600">-</p>
-                                    <p class="text-[11px] font-medium text-slate-500 mt-0.5">gram/hari</p>
-                                </div>
-                                <div class="bg-teal-50/60 p-3 rounded-xl border border-teal-100">
-                                    <p class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Kebutuhan Serat</p>
-                                    <p id="res-serat" class="text-xl font-black text-teal-600">-</p>
-                                    <p class="text-[11px] font-medium text-slate-500 mt-0.5">gram/hari</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="mt-4 pt-4 border-t border-slate-100">
-                            <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">🍱 Rekomendasi Menu Panitia yang Sesuai:</h3>
-                            <div id="rekomendasi-makanan" class="p-4 bg-slate-50 border border-dashed border-slate-200 rounded-xl text-sm text-slate-400 text-center font-medium">
-                                Silakan masukkan data diri dan klik hitung untuk melihat menu panitia yang cocok.
-                            </div>
-                        </div>
+                    
+                    <div class="mt-4 text-right">
+                        <button onclick="logoutPengguna()" class="bg-white/50 hover:bg-white text-slate-600 px-4 py-2 rounded-xl text-xs font-bold transition-all border border-slate-300">Keluar dari Kebun</button>
                     </div>
                 </div>
             </div>
@@ -201,14 +153,96 @@
         </div>
 
 
-        <!-- ================= DASHBOARD PANITIA LAPANGAN ================= -->
+        <!-- ================= DASHBOARD PANITIA LAPANGAN (REGISTRASI & LIST) ================= -->
         <div id="panel-lapangan" class="dashboard-panel hidden">
-            <h2 class="text-2xl font-bold text-amber-600 mb-6 flex items-center gap-1">📋 Dashboard Panitia Lapangan (Data & Distribusi)</h2>
+            <h2 class="text-2xl font-bold text-amber-600 mb-6 flex items-center gap-1">📋 Dashboard Panitia Lapangan</h2>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                <!-- Form Input Registrasi -->
+                <div class="bg-white p-6 rounded-2xl shadow-md border-t-4 border-blue-500">
+                    <h3 class="text-lg font-bold mb-4 text-slate-700 border-b pb-2 flex items-center gap-1">📝 Registrasi Korban Baru</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase">Nama Lengkap</label>
+                            <input type="text" id="nama" class="w-full mt-1 p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:bg-white outline-none transition-all" placeholder="Contoh: Andi Wijaya">
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase">Berat Badan (kg)</label>
+                                <input type="number" id="bb" class="w-full mt-1 p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:bg-white outline-none transition-all" placeholder="60">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase">Tinggi Badan (cm)</label>
+                                <input type="number" id="tb" class="w-full mt-1 p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:bg-white outline-none transition-all" placeholder="165">
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase">Usia (Tahun)</label>
+                                <input type="number" id="usia" class="w-full mt-1 p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:bg-white outline-none transition-all" placeholder="20">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase">Jenis Kelamin</label>
+                                <select id="jk" class="w-full mt-1 p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:bg-white outline-none transition-all">
+                                    <option value="pria">Pria</option>
+                                    <option value="wanita">Wanita</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button onclick="prosesDataGizi()" class="w-full bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 transition shadow-md cursor-pointer">
+                            Hitung & Daftarkan Pengguna
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Hasil Gizi Lengkap & Kredensial -->
+                <div class="bg-white p-6 rounded-2xl shadow-md border-t-4 border-blue-500 lg:col-span-2 flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-lg font-bold mb-4 text-slate-700 border-b pb-2 flex items-center gap-1">📊 Hasil Analisis Makronutrien & Energi</h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-center mb-4">
+                            <div class="bg-blue-50/60 p-3 rounded-xl border border-blue-100">
+                                <p class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">IMT Anda</p>
+                                <p id="res-imt" class="text-xl font-black text-blue-600">-</p>
+                                <p id="res-status-imt" class="text-[11px] font-bold text-slate-600 mt-0.5">-</p>
+                            </div>
+                            <div class="bg-green-50/60 p-3 rounded-xl border border-green-100">
+                                <p class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Energi Harian</p>
+                                <p id="res-kalori" class="text-xl font-black text-green-600">-</p>
+                                <p class="text-[11px] font-medium text-slate-500 mt-0.5">kkal/hari</p>
+                            </div>
+                            <div class="bg-yellow-50/60 p-3 rounded-xl border border-yellow-100">
+                                <p class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Protein</p>
+                                <p id="res-protein" class="text-xl font-black text-yellow-600">-</p>
+                                <p class="text-[11px] font-medium text-slate-500 mt-0.5">gram/hari</p>
+                            </div>
+                        </div>
+
+                        <!-- KREDENSIAL LOGIN PENGGUNA -->
+                        <div id="info-kredensial" class="hidden mt-4 p-4 bg-amber-50 border border-amber-200 rounded-xl flex flex-col md:flex-row items-center justify-between gap-4">
+                            <div>
+                                <p class="text-xs font-bold text-amber-800 uppercase tracking-wider mb-1">🔑 Akun Pengguna Berhasil Dibuat!</p>
+                                <p class="text-sm text-amber-900">Username: <b id="gen-user" class="bg-white px-2 py-0.5 rounded border border-amber-300"></b></p>
+                                <p class="text-sm text-amber-900 mt-1">Password: <b id="gen-pass" class="bg-white px-2 py-0.5 rounded border border-amber-300"></b></p>
+                            </div>
+                            <p class="text-[10px] text-amber-700 italic max-w-xs leading-tight">Beritahu korban data login ini sebagai cadangan jika QR code pada stiker ompreng hilang atau rusak.</p>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 pt-4 border-t border-slate-100">
+                        <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">🍱 Rekomendasi Menu Panitia yang Sesuai:</h3>
+                        <div id="rekomendasi-makanan" class="p-4 bg-slate-50 border border-dashed border-slate-200 rounded-xl text-sm text-slate-400 text-center font-medium">
+                            Silakan masukkan data diri korban dan klik hitung untuk mendaftarkan.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="bg-white p-6 rounded-2xl shadow-md border-t-4 border-amber-500 overflow-x-auto">
+                <h3 class="text-lg font-bold mb-4 text-slate-700 border-b pb-2 flex items-center gap-1">📋 Data Distribusi Pengguna Terdaftar</h3>
                 <table class="w-full text-left border-collapse">
                     <thead>
                         <tr class="bg-amber-50 text-amber-800 uppercase text-[10px] tracking-widest font-bold border-b border-amber-100">
-                            <th class="p-3">Nama Peserta / Cetak Stiker</th>
+                            <th class="p-3">Nama Peserta / Akun Login</th>
                             <th class="p-3">IMT (Status)</th>
                             <th class="p-3">Kalori / Karbo / Prot / Lemak</th>
                             <th class="p-3">Rekomendasi Paket</th>
@@ -220,14 +254,17 @@
                     </tbody>
                 </table>
             </div>
+            <button onclick="logoutPanitia()" class="mt-4 bg-slate-200 hover:bg-slate-300 text-slate-700 px-4 py-2 rounded-xl text-sm font-bold transition-all">Logout Lapangan</button>
         </div>
 
 
         <!-- ================= DASHBOARD PANITIA DAPUR ================= -->
         <div id="panel-dapur" class="dashboard-panel hidden">
+            <!-- Isi panel dapur sama seperti versi sebelumnya -->
             <h2 class="text-2xl font-bold text-emerald-600 mb-6 flex items-center gap-1">🍳 Dashboard Panitia Dapur (Jumlah Masak Masal)</h2>
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div class="lg:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <!-- Kartu Porsi A, B, C -->
                     <div class="bg-white p-5 rounded-2xl shadow-md border-b-4 border-red-500 flex flex-col justify-between hover:shadow-lg transition-all">
                         <div>
                             <span class="bg-red-100 text-red-800 text-[10px] px-2.5 py-1 rounded-lg font-bold tracking-wider">PAKET A</span>
@@ -275,53 +312,157 @@
                     <p class="text-[11px] text-slate-400 italic mt-4 text-center">Angka di atas otomatis terhitung sinkron dengan jumlah pendaftar di lapangan.</p>
                 </div>
             </div>
+
+            <!-- Rekomendasi Menu & Nutrisi Dapur -->
+            <div class="mt-6 bg-white p-6 rounded-2xl shadow-md border-t-4 border-slate-700">
+                <h3 class="text-md font-bold text-slate-700 border-b pb-2 mb-4">📋 Panduan Menu Masak Masal & Kandungan Nutrisi per Porsi</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="daftar-rekomendasi-menu">
+                    <!-- Data Menu Masuk Secara Dinamis -->
+                </div>
+            </div>
+            
+            <button onclick="logoutPanitia()" class="mt-6 bg-slate-200 hover:bg-slate-300 text-slate-700 px-4 py-2 rounded-xl text-sm font-bold transition-all">Logout Dapur</button>
         </div>
 
     </div>
 
-    <!-- ================= AREA SINKRONISASI CETAK PRINTER (TERSEMBUNYI SEMENTARA) ================= -->
+    <!-- ================= AREA SINKRONISASI CETAK PRINTER ================= -->
     <div id="area-cetak-stiker">
         <h4 style="font-size: 14px; font-weight: bold; margin-bottom: 2px;">NUTRI-PANITIA BENCANA</h4>
         <div id="qrcode-print" style="margin: 5px 0;"></div>
         <p id="nama-print" style="font-size: 12px; font-weight: bold; text-transform: uppercase; margin-top: 2px; border-top: 1px solid #000; padding-top: 2px;"></p>
-        <p id="paket-print" style="font-size: 10px; font-style: italic; color: #333;"></p>
+        <p id="paket-print" style="font-size: 10px; font-style: italic; color: #333; margin-bottom: 2px;"></p>
+        <!-- Kredensial tambahan di print -->
+        <p style="font-size: 9px; margin-top: 2px; border-top: 1px dashed #666; padding-top: 2px;">Data Login Manual (Simpan!)</p>
+        <p style="font-size: 10px;">User: <b id="user-print"></b> | Pass: <b id="pass-print"></b></p>
     </div>
 
     <!-- JAVASCRIPT LOGIC -->
     <script>
         const daftarMenuDapur = {
-            "Paket A": { nama: "Paket A (Defisit Kalori)", kalori: 450, prot: 30, cocokUntuk: "Kelebihan Berat Badan" },
-            "Paket B": { nama: "Paket B (Nutrisi Seimbang)", kalori: 650, prot: 45, cocokUntuk: "Normal" },
-            "Paket C": { nama: "Paket C (Tinggi Kalori/Protein)", kalori: 850, prot: 55, cocokUntuk: "Kekurangan Berat Badan" }
+            "Paket A": { 
+                nama: "Paket A (Defisit Kalori)", 
+                menuRekomen: "Nasi Merah (100g), Dada Ayam Rebus (100g), Sayur Bayam Bening, Buah Pepaya",
+                kalori: 450, prot: 30, karbo: 45, lemak: 15, cocokUntuk: "Kelebihan Berat Badan",
+                style: { bg: 'bg-red-50', border: 'border-red-100', textBadge: 'text-red-800', bgBadge: 'bg-red-200', textInfo: 'text-red-900', textSub: 'text-red-700' }
+            },
+            "Paket B": { 
+                nama: "Paket B (Nutrisi Seimbang)", 
+                menuRekomen: "Nasi Putih (150g), Telur Dadar (1 butir), Tumis Buncis Tempe, Pisang",
+                kalori: 650, prot: 45, karbo: 70, lemak: 20, cocokUntuk: "Normal",
+                style: { bg: 'bg-blue-50', border: 'border-blue-100', textBadge: 'text-blue-800', bgBadge: 'bg-blue-200', textInfo: 'text-blue-900', textSub: 'text-blue-700' }
+            },
+            "Paket C": { 
+                nama: "Paket C (Tinggi Kalori/Protein)", 
+                menuRekomen: "Nasi Putih (200g), Rendang Daging Rebus (100g), Orak Arik Telur (1 butir), Buah Jeruk",
+                kalori: 850, prot: 55, karbo: 95, lemak: 25, cocokUntuk: "Kekurangan Berat Badan",
+                style: { bg: 'bg-emerald-50', border: 'border-emerald-100', textBadge: 'text-emerald-800', bgBadge: 'bg-emerald-200', textInfo: 'text-emerald-900', textSub: 'text-emerald-700' }
+            }
         };
 
         let dataPesertaGlobal = [
-            { nama: "Rian Hidayat", imt: 28.1, statusImt: "Kelebihan Berat Badan", kalori: 2300, karbo: 316, protein: 75, lemak: 64, serat: 30, paket: "Paket A", diambil: false, daun: 1, habisMakan: true },
-            { nama: "Siti Aminah", imt: 21.3, statusImt: "Normal", kalori: 1950, karbo: 268, protein: 60, lemak: 54, serat: 30, paket: "Paket B", diambil: true, daun: 0, habisMakan: false }
+            { nama: "Rian Hidayat", username: "rian", password: "123", imt: 28.1, statusImt: "Kelebihan Berat Badan", kalori: 2300, karbo: 316, protein: 75, lemak: 64, serat: 30, paket: "Paket A", diambil: false, daun: 1, habisMakan: true },
+            { nama: "Siti Aminah", username: "siti", password: "123", imt: 21.3, statusImt: "Normal", kalori: 1950, karbo: 268, protein: 60, lemak: 54, serat: 30, paket: "Paket B", diambil: true, daun: 0, habisMakan: false }
         ];
 
         let userLoginIndex = null;
+        let sessionLapangan = false;
+        let sessionDapur = false;
+        let targetRoleLogin = '';
 
         function switchRole(role) {
             document.querySelectorAll('.dashboard-panel').forEach(panel => panel.classList.add('hidden'));
-            if(role === 'pengguna') document.getElementById('panel-pengguna').classList.remove('hidden');
-            if(role === 'lapangan') {
-                document.getElementById('panel-lapangan').classList.remove('hidden');
-                renderLapangan();
-            }
-            if(role === 'dapur') {
-                document.getElementById('panel-dapur').classList.remove('hidden');
-                renderDapur();
+            
+            if(role === 'pengguna') {
+                if (userLoginIndex !== null) {
+                    document.getElementById('panel-pengguna').classList.remove('hidden');
+                    document.getElementById('area-login-qr').classList.add('hidden');
+                    document.getElementById('konten-pengguna').classList.remove('hidden');
+                } else {
+                    document.getElementById('panel-pengguna').classList.remove('hidden');
+                    document.getElementById('area-login-qr').classList.remove('hidden');
+                    document.getElementById('konten-pengguna').classList.add('hidden');
+                }
+            } 
+            else if(role === 'lapangan') {
+                if(sessionLapangan) {
+                    document.getElementById('panel-lapangan').classList.remove('hidden');
+                    renderLapangan();
+                } else {
+                    tampilkanFormLogin('lapangan');
+                }
+            } 
+            else if(role === 'dapur') {
+                if(sessionDapur) {
+                    document.getElementById('panel-dapur').classList.remove('hidden');
+                    renderDapur();
+                } else {
+                    tampilkanFormLogin('dapur');
+                }
             }
         }
 
-        function simulasiLoginSukses() {
-            userLoginIndex = 0; 
-            document.getElementById('area-login-qr').classList.add('hidden');
-            document.getElementById('konten-pengguna').classList.remove('hidden');
-            const user = dataPesertaGlobal[userLoginIndex];
-            document.getElementById('nama').value = user.nama;
-            updateKebunPengguna();
+        // --- FITUR LOGIN PANITIA ---
+        function tampilkanFormLogin(role) {
+            targetRoleLogin = role;
+            document.getElementById('panel-login-panitia').classList.remove('hidden');
+            document.getElementById('login-username').value = '';
+            document.getElementById('login-password').value = '';
+            
+            if(role === 'lapangan') {
+                document.getElementById('judul-login').innerText = "Login Panitia Lapangan";
+                document.getElementById('ikon-login').innerText = "📋";
+                document.getElementById('hint-login').innerText = "Hint: username 'dafi', pass '123'";
+            } else {
+                document.getElementById('judul-login').innerText = "Login Panitia Dapur";
+                document.getElementById('ikon-login').innerText = "🍳";
+                document.getElementById('hint-login').innerText = "Hint: username 'dapur', pass '123'";
+            }
+        }
+
+        function prosesLoginPanitia() {
+            const u = document.getElementById('login-username').value.toLowerCase();
+            const p = document.getElementById('login-password').value;
+
+            if(targetRoleLogin === 'lapangan' && u === 'dafi' && p === '123') {
+                sessionLapangan = true;
+                switchRole('lapangan');
+            } else if(targetRoleLogin === 'dapur' && u === 'dapur' && p === '123') {
+                sessionDapur = true;
+                switchRole('dapur');
+            } else {
+                alert("Username atau Password salah!");
+            }
+        }
+
+        function logoutPanitia() {
+            sessionLapangan = false;
+            sessionDapur = false;
+            switchRole('pengguna'); 
+        }
+
+        // --- FITUR LOGIN PENGGUNA ---
+        function loginManualPengguna() {
+            const u = document.getElementById('user-manual-username').value.toLowerCase().trim();
+            const p = document.getElementById('user-manual-password').value;
+
+            const targetIndex = dataPesertaGlobal.findIndex(user => user.username === u && user.password === p);
+
+            if(targetIndex !== -1) {
+                userLoginIndex = targetIndex;
+                document.getElementById('area-login-qr').classList.add('hidden');
+                document.getElementById('konten-pengguna').classList.remove('hidden');
+                updateKebunPengguna();
+            } else {
+                alert("Username atau Password tidak ditemukan. Silakan hubungi Panitia Lapangan.");
+            }
+        }
+
+        function logoutPengguna() {
+            userLoginIndex = null;
+            document.getElementById('user-manual-username').value = '';
+            document.getElementById('user-manual-password').value = '';
+            switchRole('pengguna');
         }
 
         function updateKebunPengguna() {
@@ -339,15 +480,16 @@
 
             let pesan = "";
             if (user.statusImt === "Kekurangan Berat Badan" || user.kalori > 2000) {
-                pesan = `👋 Halo ${user.nama}, saat berada di posko darurat ini, tubuhmu memerlukan energi ekstra sebanyak ${user.kalori} kkal untuk menjaga imunitas tetap kuat. Tetap semangat, habiskan jatah makananmu dari panitia ya agar pohonmu tumbuh rimbun!`;
+                pesan = `👋 Halo ${user.nama}, tubuhmu memerlukan energi ekstra sebanyak ${user.kalori} kkal. Habiskan jatah makananmu dari panitia ya agar pohonmu tumbuh rimbun!`;
             } else if (user.statusImt === "Kelebihan Berat Badan") {
-                pesan = `👋 Halo ${user.nama}, porsi makanmu sudah diatur seimbang dengan kalori terkontrol oleh tim dapur agar kamu tetap bugar selama masa pemulihan darurat ini. Yuk, habiskan porsi sehatmu hari ini!`;
+                pesan = `👋 Halo ${user.nama}, porsi makanmu sudah diatur seimbang. Yuk, habiskan porsi sehatmu hari ini!`;
             } else {
-                pesan = `👋 Halo ${user.nama}, kondisi fisikmu terpantau ideal dan sangat baik! Jaga terus performa tubuhmu di pengungsian dengan menghabiskan menu Paket Seimbang dari panitia dapur ya.`;
+                pesan = `👋 Halo ${user.nama}, kondisi fisikmu terpantau ideal! Jaga terus performa tubuhmu di pengungsian dengan menghabiskan menu dari panitia dapur ya.`;
             }
             document.getElementById('pesan-motivasi-bencana').innerText = pesan;
         }
 
+        // --- FITUR PANITIA LAPANGAN (REGISTRASI KORBAN) ---
         function prosesDataGizi() {
             const nama = document.getElementById('nama').value.trim();
             const bb = parseFloat(document.getElementById('bb').value);
@@ -380,10 +522,14 @@
                 : (10 * bb) + (6.25 * (tb * 100)) - (5 * usia) - 161;
             
             const totalKalori = Math.round(bmr * 1.3);
-            const protein = Math.round(bb * 1.2);                 
+            const protein = Math.round(bb * 1.2);                
             const karbohidrat = Math.round((totalKalori * 0.55) / 4); 
             const lemak = Math.round((totalKalori * 0.25) / 9);        
             const serat = 30; 
+
+            // Generate Username & Password
+            const generatedUsername = nama.toLowerCase().replace(/\s/g, '').substring(0, 8) + Math.floor(10 + Math.random() * 90);
+            const generatedPassword = Math.floor(100000 + Math.random() * 900000).toString(); // 6 digit PIN
 
             document.getElementById('res-imt').innerText = imt;
             document.getElementById('res-status-imt').innerText = statusImt;
@@ -393,42 +539,49 @@
             document.getElementById('res-lemak').innerText = lemak;
             document.getElementById('res-serat').innerText = serat;
 
+            // Tampilkan Kredensial ke Panitia Lapangan
+            document.getElementById('info-kredensial').classList.remove('hidden');
+            document.getElementById('gen-user').innerText = generatedUsername;
+            document.getElementById('gen-pass').innerText = generatedPassword;
+
             const menu = daftarMenuDapur[paketDipilih];
             document.getElementById('rekomendasi-makanan').innerHTML = `
                 <div class="bg-emerald-50 text-emerald-900 p-4 rounded-xl border border-emerald-200 text-left">
                     <p class="font-bold text-sm text-emerald-800 flex items-center gap-1">✨ Direkomendasikan: ${menu.nama}</p>
-                    <p class="text-xs mt-1 text-slate-600 leading-relaxed">Wadah makan Anda wajib ditempel stiker QR Code untuk validasi menu.</p>
+                    <p class="text-xs mt-1 text-slate-600 leading-relaxed">Sistem sedang mencetak stiker QR Code, tempelkan pada wadah makan korban.</p>
                 </div>
             `;
 
             dataPesertaGlobal.push({
-                nama: nama, imt: parseFloat(imt), statusImt: statusImt, kalori: totalKalori,
+                nama: nama, username: generatedUsername, password: generatedPassword, 
+                imt: parseFloat(imt), statusImt: statusImt, kalori: totalKalori,
                 karbo: karbohidrat, protein: protein, lemak: lemak, serat: serat, paket: paketDipilih,
                 diambil: false, daun: 0, habisMakan: false
             });
 
-            userLoginIndex = dataPesertaGlobal.length - 1;
-            updateKebunPengguna();
-
-            // PANGGIL SISTEM STIKER CETAK
-            printStikerOmpreng(nama, paketDipilih);
+            renderLapangan();
+            printStikerOmpreng(nama, paketDipilih, generatedUsername, generatedPassword);
+            
+            // Reset Form
+            document.getElementById('nama').value = '';
+            document.getElementById('bb').value = '';
+            document.getElementById('tb').value = '';
+            document.getElementById('usia').value = '';
         }
 
-        // FUNGSI UTAMA: MEMBUAT 1 QR CODE HANYA UNTUK DIKIRIM KE MESIN CETAK
-        function printStikerOmpreng(namaUser, paket) {
-            document.getElementById('qrcode-print').innerHTML = ""; // Bersihkan QR lama
-            
+        function printStikerOmpreng(namaUser, paket, uname, pass) {
+            document.getElementById('qrcode-print').innerHTML = ""; 
             document.getElementById('nama-print').innerText = namaUser;
             document.getElementById('paket-print').innerText = "Menu: " + paket;
+            document.getElementById('user-print').innerText = uname;
+            document.getElementById('pass-print').innerText = pass;
             
-            // Generate 1 QR Code di area tersembunyi
             new QRCode(document.getElementById("qrcode-print"), {
                 text: "LOGIN_MUTRI_PANITIA_" + namaUser.toUpperCase().replace(/\s+/g, '_'),
                 width: 110,
                 height: 110
             });
 
-            // Beri jeda sebentar agar browser selesai menggambar QR Code, lalu print
             setTimeout(() => {
                 window.print();
             }, 300);
@@ -448,8 +601,9 @@
                     <tr class="border-b border-slate-100 hover:bg-slate-50 transition-all">
                         <td class="p-3">
                             <div class="font-bold text-slate-800">${p.nama}</div>
-                            <button onclick="printStikerOmpreng('${p.nama}', '${p.paket}')" class="mt-1 bg-blue-50 hover:bg-blue-100 text-blue-600 font-bold text-[11px] px-2.5 py-1 rounded-lg border border-blue-200 transition-all cursor-pointer flex items-center gap-1">
-                                🖨️ Cetak Ulang Stiker Ompreng
+                            <div class="text-[10px] text-slate-500 font-mono mt-0.5">User: ${p.username} | Pass: ${p.password}</div>
+                            <button onclick="printStikerOmpreng('${p.nama}', '${p.paket}', '${p.username}', '${p.password}')" class="mt-1 bg-blue-50 hover:bg-blue-100 text-blue-600 font-bold text-[11px] px-2.5 py-1 rounded-lg border border-blue-200 transition-all cursor-pointer flex items-center gap-1">
+                                🖨️ Cetak Stiker
                             </button>
                         </td>
                         <td class="p-3">
@@ -493,7 +647,6 @@
                 dataPesertaGlobal[index].daun = 0;
             }
             renderLapangan();
-            updateKebunPengguna();
         }
 
         function konfirmasiHabisMakan(index) {
@@ -506,7 +659,6 @@
                 dataPesertaGlobal[index].daun = Math.max(0, dataPesertaGlobal[index].daun - 1);
             }
             renderLapangan();
-            updateKebunPengguna();
         }
 
         function renderDapur() {
@@ -520,6 +672,32 @@
             document.getElementById('qty-paket-b').innerHTML = `${porsiB} <span class="text-xs font-normal text-slate-400">Porsi</span>`;
             document.getElementById('qty-paket-c').innerHTML = `${porsiC} <span class="text-xs font-normal text-slate-400">Porsi</span>`;
             document.getElementById('total-produksi-global').innerText = dataPesertaGlobal.length;
+
+            const menuContainer = document.getElementById('daftar-rekomendasi-menu');
+            menuContainer.innerHTML = '';
+            
+            Object.keys(daftarMenuDapur).forEach(key => {
+                const item = daftarMenuDapur[key];
+                const s = item.style;
+                
+                menuContainer.innerHTML += `
+                    <div class="${s.bg} p-5 rounded-2xl border ${s.border} flex flex-col justify-between">
+                        <div>
+                            <span class="${s.bgBadge} ${s.textBadge} text-[10px] px-2 py-1 rounded font-bold uppercase tracking-wider">${key}</span>
+                            <h4 class="text-sm font-bold mt-3 ${s.textInfo}">${item.menuRekomen}</h4>
+                        </div>
+                        <div class="mt-4 pt-3 border-t border-white/50">
+                            <p class="text-[10px] font-bold uppercase tracking-wider mb-2 text-slate-500">Estimasi Nutrisi per Porsi:</p>
+                            <div class="grid grid-cols-2 gap-2 text-[11px] ${s.textSub} font-medium">
+                                <div class="bg-white/40 p-1.5 rounded-lg">🔥 Kalori: <b>${item.kalori} kkal</b></div>
+                                <div class="bg-white/40 p-1.5 rounded-lg">🥩 Protein: <b>${item.prot}g</b></div>
+                                <div class="bg-white/40 p-1.5 rounded-lg">🍞 Karbo: <b>${item.karbo}g</b></div>
+                                <div class="bg-white/40 p-1.5 rounded-lg">🥑 Lemak: <b>${item.lemak}g</b></div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
         }
     </script>
 </body>
