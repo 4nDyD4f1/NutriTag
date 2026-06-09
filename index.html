@@ -1,704 +1,506 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NutriTag - Sistem Tanggap Darurat Gizi Bencana</title>
-    <!-- Tailwind CSS Modern -->
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <!-- Library QR Code Generator (CDN resmi & aman) -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-
-    <!-- CSS SINKRONISASI TAMPILAN DAN CETAK STIKER -->
-    <style>
-        #area-cetak-stiker {
-            display: none !important;
-        }
-
-        @media print {
-            body *, .dashboard-panel, nav, button, input, select, h2 {
-                display: none !important;
-            }
-            #area-cetak-stiker, #area-cetak-stiker * {
-                display: block !important;
-            }
-            #area-cetak-stiker {
-                position: absolute;
-                left: 0;
-                top: 0;
-                width: 6cm; 
-                padding: 12px;
-                border: 1px dashed #000;
-                text-align: center;
-                background: #fff !important;
-            }
-            #qrcode-print canvas, #qrcode-print img {
-                display: inline-block !important;
-                margin: 0 auto;
-            }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NutriTag — Disaster Relief Nutrition</title>
+  <meta name="description" content="NutriTag: Real-time nutrition monitoring system for disaster relief shelters.">
+  
+  <!-- Fonts & Icons -->
+  <link rel="stylesheet" href="assets/css/custom.css">
+  
+  <!-- Leaflet for Map -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  
+  <!-- QR Libraries -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 </head>
-<body class="bg-slate-50 font-sans text-slate-800 antialiased min-h-screen">
+<body>
 
-    <!-- NAVIGASI UTAMA -->
-    <nav class="bg-gradient-to-r from-emerald-600 via-teal-600 to-blue-600 p-4 text-white shadow-lg sticky top-0 z-50">
-        <div class="container mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
-            <div class="flex items-center gap-2">
-                <span class="text-2xl">🥗</span>
-                <div>
-                    <h1 class="text-lg font-black tracking-wider leading-none">NutriTag</h1>
-                    <p class="text-[10px] text-emerald-100 font-medium tracking-tight">Sistem Gizi Tanggap Darurat Bencana</p>
-                </div>
-            </div>
-            <div class="flex gap-2 bg-black/10 p-1 rounded-xl backdrop-blur-xs">
-                <button onclick="switchRole('pengguna')" class="hover:bg-white/10 font-bold text-xs px-3 py-2 rounded-lg transition-all cursor-pointer">Dashboard Pengguna</button>
-                <button onclick="switchRole('lapangan')" class="hover:bg-white/10 font-bold text-xs px-3 py-2 rounded-lg transition-all cursor-pointer">Panitia Lapangan</button>
-                <button onclick="switchRole('dapur')" class="hover:bg-white/10 font-bold text-xs px-3 py-2 rounded-lg transition-all cursor-pointer">Panitia Dapur</button>
-            </div>
+  <!-- ==========================================
+       LANDING PAGE (MAP SELECTION)
+       ========================================== -->
+  <div class="fullscreen-page" id="landing-page">
+    <div class="landing-header">
+      <div class="landing-logo">
+        <div class="landing-logo-icon">🥗</div>
+        <div>
+          <h1>NutriTag</h1>
+          <span>Disaster Relief Nutrition System</span>
         </div>
-    </nav>
+      </div>
+    </div>
+    
+    <div class="landing-body">
+      <div class="landing-title">
+        <h2>Pilih Posko Pengungsian</h2>
+        <p>Pilih lokasi shelter Anda untuk masuk ke sistem terpadu NutriTag.</p>
+      </div>
+      
+      <div class="grid-2-1" style="flex:1;">
+        <!-- Map -->
+        <div class="map-container">
+          <div id="leaflet-map"></div>
+        </div>
+        
+        <!-- Shelter List (Desktop side, Mobile bottom) -->
+        <div style="background:var(--card); border-radius:var(--radius-xl); padding:24px; box-shadow:var(--shadow-sm); overflow-y:auto; max-height:600px;">
+          <h3 style="font-size:16px; font-weight:800; margin-bottom:16px; display:flex; align-items:center; gap:8px;">
+            <span>📍</span> Posko Terdekat
+          </h3>
+          <div id="shelter-list" style="display:flex; flex-direction:column; gap:12px;">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
-    <div class="container mx-auto my-8 p-4">
+  <!-- ==========================================
+       ROLE SELECTION PAGE
+       ========================================== -->
+  <div class="fullscreen-page hidden role-page" id="role-page">
+    <div class="role-container">
+      <div class="role-shelter-badge" id="role-shelter-badge">
+        <span>📍</span> <span id="role-shelter-name">Shelter Alpha-1</span>
+      </div>
+      
+      <h2 class="role-title">Selamat Datang di NutriTag</h2>
+      <p class="role-subtitle">Silakan pilih peran Anda untuk masuk ke sistem.</p>
+      
+      <div class="role-cards">
+        <div class="role-card korban" onclick="showLogin('pengguna')">
+          <span class="role-card-icon">🌱</span>
+          <h3>Pengguna / Korban</h3>
+          <p>Akses Kebun Virtual untuk melihat status gizi harian dan perkembangan pohon Anda.</p>
+        </div>
+        
+        <div class="role-card panitia" onclick="showLogin('panitia')">
+          <span class="role-card-icon">📋</span>
+          <h3>Panitia / Relawan</h3>
+          <p>Akses dashboard manajemen, registrasi korban, distribusi makanan, dan monitoring alert.</p>
+        </div>
+      </div>
+      
+      <button class="role-back-btn" onclick="backToLanding()">
+        <span>←</span> Ganti Posko
+      </button>
+    </div>
+  </div>
 
-        <!-- ================= PANEL LOGIN PANITIA ================= -->
-        <div id="panel-login-panitia" class="dashboard-panel hidden max-w-md mx-auto bg-white p-6 rounded-2xl shadow-xl border border-slate-100 text-center mb-8">
-            <span class="text-4xl" id="ikon-login">🔐</span>
-            <h3 class="text-xl font-bold mt-2 text-slate-800" id="judul-login">Login Panitia</h3>
-            <p class="text-xs text-slate-500 mt-1 mb-4">Silakan masukkan kredensial untuk mengakses dashboard.</p>
-            
-            <div class="space-y-4 text-left">
+  <!-- ==========================================
+       LOGIN PAGES
+       ========================================== -->
+  
+  <!-- Login Pengguna -->
+  <div class="fullscreen-page hidden login-page" id="login-pengguna-page">
+    <div class="login-card">
+      <span class="login-icon">🌳</span>
+      <h2 class="login-title">Masuk ke Kebun</h2>
+      <p class="login-subtitle">Gunakan ID dan PIN dari Panitia</p>
+      
+      <div class="form-group text-left">
+        <label class="form-label">Resident ID</label>
+        <input type="text" class="form-input" id="login-user-id" placeholder="Contoh: NT12345">
+      </div>
+      <div class="form-group text-left">
+        <label class="form-label">PIN</label>
+        <input type="password" class="form-input" id="login-user-pin" placeholder="4 Digit PIN">
+      </div>
+      
+      <button class="btn btn-primary btn-block mt-16" onclick="loginPengguna()">Masuk</button>
+      <button class="btn btn-ghost btn-block mt-8" onclick="backToRole()">Kembali</button>
+    </div>
+  </div>
+
+  <!-- Login Panitia -->
+  <div class="fullscreen-page hidden login-page" id="login-panitia-page">
+    <div class="login-card" style="border-top: 4px solid var(--info);">
+      <span class="login-icon">🔐</span>
+      <h2 class="login-title">Login Panitia</h2>
+      <p class="login-subtitle">Akses Dashboard Manajemen (Gunakan password: admin123)</p>
+      
+      <div class="form-group text-left">
+        <label class="form-label">Password Posko</label>
+        <input type="password" class="form-input" id="login-panitia-pass" placeholder="Masukkan password">
+      </div>
+      
+      <button class="btn btn-info btn-block mt-16" style="background:var(--info); color:#fff;" onclick="loginPanitia()">Login Dashboard</button>
+      <button class="btn btn-ghost btn-block mt-8" onclick="backToRole()">Kembali</button>
+    </div>
+  </div>
+
+
+  <!-- ==========================================
+       MAIN APP INTERFACE
+       ========================================== -->
+  <div class="app-container hidden" id="app-container">
+    
+    <!-- ===== SIDEBAR ===== -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-logo">
+        <span style="font-size:24px;">🥗</span>
+        <h2>NutriTag</h2>
+      </div>
+      
+      <div class="sidebar-shelter">
+        <div class="sidebar-shelter-avatar" id="sidebar-avatar">SA</div>
+        <div class="sidebar-shelter-info">
+          <h3 id="sidebar-shelter-name">Shelter Alpha-1</h3>
+          <span id="sidebar-shelter-unit">Disaster Relief Unit</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav" id="sidebar-nav-container">
+        <!-- Links dynamically shown based on role -->
+      </nav>
+
+      <div class="sidebar-footer">
+        <button class="nav-item" onclick="logoutApp()">
+          <span class="nav-icon">🚪</span>
+          <span>Logout</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- ===== MAIN CONTENT ===== -->
+    <main class="main-content">
+
+      <!-- ========== PAGE: KEBUN VIRTUAL (Pengguna) ========== -->
+      <section class="page" id="page-pohon">
+        <div class="kebun-header">
+          <div>
+            <h1>Kebun Virtual</h1>
+            <p>Watch your nutrition grow your personal tree!</p>
+          </div>
+          <div class="leaf-counter">
+            <span class="leaf-icon">🍃</span>
+            <span id="kebun-leaf-count">0</span>
+            <span class="leaf-label">Daun (Leaves)</span>
+          </div>
+        </div>
+
+        <div class="grid-2-1">
+          <!-- Main Tree Area -->
+          <div>
+            <div class="pohon-card">
+              <!-- Dots Decoration -->
+              <div class="pohon-dot dot-1"></div>
+              <div class="pohon-dot dot-2"></div>
+              <div class="pohon-dot dot-3"></div>
+
+              <div class="pohon-card-header">
                 <div>
-                    <label class="block text-xs font-bold text-slate-500 uppercase">Username</label>
-                    <input type="text" id="login-username" class="w-full mt-1 p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:bg-white outline-none transition-all">
+                  <h2 class="pohon-card-title">My Pohon</h2>
+                  <div class="pohon-stage-badge" id="pohon-stage-badge">
+                    <span id="pohon-stage-icon">⭐</span>
+                    <span id="pohon-stage-text">Blooming Stage</span>
+                  </div>
                 </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-500 uppercase">Password</label>
-                    <input type="password" id="login-password" class="w-full mt-1 p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:bg-white outline-none transition-all">
-                </div>
-                <button onclick="prosesLoginPanitia()" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-xl text-sm font-bold shadow-md transition-all cursor-pointer mt-2">
-                    Masuk ke Dashboard
+                <button class="pohon-share-btn" onclick="showToast('Berhasil disalin ke clipboard!', 'success')">
+                  🔗
                 </button>
+              </div>
+
+              <div class="pohon-tree-area">
+                <img src="assets/images/tree_wilting.png" id="pohon-tree-img" class="pohon-tree-img wilting" alt="Pohon Gizi">
+              </div>
+
+              <div class="pohon-progress-area">
+                <div class="pohon-progress-label">
+                  <span>Next Stage: <span id="pohon-next-stage">Bearing Fruit</span></span>
+                  <span id="pohon-progress-text">85%</span>
+                </div>
+                <div class="pohon-progress-bar">
+                  <div class="pohon-progress-fill" id="pohon-progress-fill" style="width: 85%;"></div>
+                </div>
+              </div>
             </div>
-            <p class="text-[10px] text-slate-400 mt-4 italic" id="hint-login"></p>
+            
+            <div class="motivation-card mt-16">
+              <div class="motivation-label">💌 Pesan Hari Ini</div>
+              <p class="motivation-text" id="pohon-motivation">Keep eating your meals to see your tree grow tall and strong!</p>
+            </div>
+          </div>
+
+          <!-- Side Panels -->
+          <div>
+            <!-- Daily Nutrition -->
+            <div class="daily-nutrition-card">
+              <h3 class="daily-nutrition-title">
+                <span>🍴</span> Daily Nutrition
+              </h3>
+              
+              <div id="daily-nutrition-list">
+                <!-- Rendered by JS -->
+              </div>
+            </div>
+
+            <!-- Community Forest -->
+            <div class="community-forest-card">
+              <div class="community-forest-header">
+                <h3><span>👥</span> Community Forest</h3>
+                <a onclick="showToast('Fitur View All sedang dalam pengembangan', 'info')">View All</a>
+              </div>
+              
+              <div class="forest-grid" id="community-forest-grid">
+                <!-- Rendered by JS -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========== PAGE: REGISTRATION (Panitia) ========== -->
+      <section class="page" id="page-registration">
+        <div class="page-header">
+          <h1>New Resident Registration</h1>
+          <p>Register evacuees to generate nutrition profile and tags.</p>
         </div>
 
-        <!-- ================= DASHBOARD PENGGUNA (HANYA KEBUN & LOGIN) ================= -->
-        <div id="panel-pengguna" class="dashboard-panel transition-all duration-300">
-            
-            <!-- SISTEM LOGIN / QR SCANNER PENGGUNA -->
-            <div id="area-login-qr" class="max-w-md mx-auto bg-white p-6 rounded-2xl shadow-xl border border-slate-100 text-center mb-8">
-                <span class="text-4xl">📱</span>
-                <h3 class="text-xl font-bold mt-2 text-slate-800">Masuk ke Kebun Gizi</h3>
-                <p class="text-xs text-slate-500 mt-1 mb-4">Arahkan kamera ponsel ke QR Code stiker ompreng Anda.</p>
-                
-                <div class="bg-slate-100 p-4 rounded-xl border border-dashed border-slate-300 inline-block mb-4">
-                    <div class="w-40 h-40 flex items-center justify-center text-slate-400 text-xs font-mono">
-                        [ KAMERA SCANNER MOCKUP ]
-                    </div>
+        <div class="grid-2-1">
+          <!-- Form -->
+          <div>
+            <div class="card">
+              <div class="form-group">
+                <label class="form-label">Full Name</label>
+                <input type="text" class="form-input" id="reg-name" placeholder="Full Name">
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">Age (Years)</label>
+                  <input type="number" class="form-input" id="reg-age" placeholder="Age" min="0" max="120">
                 </div>
-
-                <div class="my-4 flex items-center before:mt-0.5 before:flex-1 before:border-t before:border-slate-200 after:mt-0.5 after:flex-1 after:border-t after:border-slate-200">
-                    <span class="mx-4 mb-0 text-center text-xs font-bold text-slate-400 uppercase">ATAU LOGIN MANUAL</span>
+                <div class="form-group">
+                  <label class="form-label">Gender</label>
+                  <select class="form-select" id="reg-gender">
+                    <option value="" disabled selected>Select Gender</option>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                  </select>
                 </div>
-
-                <!-- Opsi Login Manual -->
-                <div class="space-y-3 text-left mb-4">
-                    <div>
-                        <input type="text" id="user-manual-username" placeholder="Username dari Panitia" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-emerald-400 focus:bg-white outline-none transition-all">
-                    </div>
-                    <div>
-                        <input type="password" id="user-manual-password" placeholder="Password PIN" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-emerald-400 focus:bg-white outline-none transition-all">
-                    </div>
-                    <button onclick="loginManualPengguna()" class="w-full bg-slate-800 hover:bg-slate-900 text-white py-2.5 rounded-xl text-sm font-bold shadow-md transition-all cursor-pointer">
-                        Masuk dengan Username
-                    </button>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">Weight (kg)</label>
+                  <input type="number" class="form-input" id="reg-weight" placeholder="kg" min="1" step="0.1">
                 </div>
-
-                <p class="text-[10px] text-slate-400 italic">Gunakan user "rian" pass "123" untuk percobaan login.</p>
+                <div class="form-group">
+                  <label class="form-label">Height (cm)</label>
+                  <input type="number" class="form-input" id="reg-height" placeholder="cm" min="20" step="0.1">
+                </div>
+              </div>
+              <button class="btn btn-primary btn-block btn-lg mt-8" onclick="calculateAndRegister()">
+                📋 Calculate Metrics & Register
+              </button>
             </div>
 
-            <!-- KONTEN UTAMA DASHBOARD PENGGUNA (KEBUN) -->
-            <div id="konten-pengguna" class="hidden space-y-6">
-                <!-- GAMIFIKASI KEBUN NUTRISI -->
-                <div class="bg-gradient-to-b from-sky-100 to-emerald-50 p-6 rounded-3xl shadow-md border border-emerald-100 relative overflow-hidden">
-                    <div class="absolute top-2 right-2 bg-emerald-600 text-white text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded-lg">
-                        Kebun Sehatku
-                    </div>
-                    <h3 class="text-lg font-black text-emerald-800 flex items-center gap-1">🏡 Kebun & Pohon Gizi <span id="nama-pemilik-kebun" class="text-blue-600"></span></h3>
-                    <p class="text-xs text-slate-600">Habiskan porsi makanan bencana yang diberikan panitia untuk menumbuhkan daun baru di pohonmu!</p>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6 items-center">
-                        <div class="bg-white/60 backdrop-blur-xs p-4 rounded-2xl border border-white text-center shadow-xs">
-                            <span class="text-xs text-slate-500 font-bold uppercase tracking-wider block">Kondisi Pohon Anda</span>
-                            <div class="my-3 text-5xl transition-all duration-300" id="visual-pohon">🌱</div>
-                            <span id="txt-daun-pohon" class="text-xs font-extrabold bg-emerald-100 text-emerald-800 px-2.5 py-1 rounded-full">0 Helai Daun</span>
-                        </div>
-                        
-                        <!-- PESAN PENYEMANGAT -->
-                        <div class="md:col-span-2 bg-white/80 p-4 rounded-2xl border border-emerald-100 flex flex-col justify-center">
-                            <span class="text-xs text-emerald-700 font-bold uppercase tracking-wider">💌 Pesan Penyemangat Nutrisi:</span>
-                            <p id="pesan-motivasi-bencana" class="text-sm font-medium text-slate-700 mt-2 italic leading-relaxed">
-                                "Silakan pilih atau masukkan data gizi Anda untuk melihat pesan energi."
-                            </p>
-                        </div>
-                    </div>
-                    
-                    <div class="mt-4 text-right">
-                        <button onclick="logoutPengguna()" class="bg-white/50 hover:bg-white text-slate-600 px-4 py-2 rounded-xl text-xs font-bold transition-all border border-slate-300">Keluar dari Kebun</button>
-                    </div>
-                </div>
+            <!-- Result -->
+            <div class="card mt-16 hidden" id="registration-result">
+              <div class="card-header">
+                <div class="card-header-icon green">✅</div>
+                <h2>Success <small id="result-name-display"></small></h2>
+              </div>
+              <div class="grid-3" id="result-macros"></div>
+              <div class="divider"></div>
+              <div style="background:var(--warning-light);padding:14px;border-radius:var(--radius);border:1px solid #fde68a;">
+                <p style="font-size:12px;font-weight:700;color:#92400e;">🔑 Account Created</p>
+                <p style="font-size:13px;color:#78350f;">ID: <b id="result-id"></b></p>
+                <p style="font-size:13px;color:#78350f;">PIN: <b id="result-pin"></b></p>
+              </div>
             </div>
 
-        </div>
-
-
-        <!-- ================= DASHBOARD PANITIA LAPANGAN (REGISTRASI & LIST) ================= -->
-        <div id="panel-lapangan" class="dashboard-panel hidden">
-            <h2 class="text-2xl font-bold text-amber-600 mb-6 flex items-center gap-1">📋 Dashboard Panitia Lapangan</h2>
-            
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-                <!-- Form Input Registrasi -->
-                <div class="bg-white p-6 rounded-2xl shadow-md border-t-4 border-blue-500">
-                    <h3 class="text-lg font-bold mb-4 text-slate-700 border-b pb-2 flex items-center gap-1">📝 Registrasi Korban Baru</h3>
-                    <div class="space-y-4">
-                        <div>
-                            <label class="block text-xs font-bold text-slate-500 uppercase">Nama Lengkap</label>
-                            <input type="text" id="nama" class="w-full mt-1 p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:bg-white outline-none transition-all" placeholder="Contoh: Andi Wijaya">
-                        </div>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-xs font-bold text-slate-500 uppercase">Berat Badan (kg)</label>
-                                <input type="number" id="bb" class="w-full mt-1 p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:bg-white outline-none transition-all" placeholder="60">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold text-slate-500 uppercase">Tinggi Badan (cm)</label>
-                                <input type="number" id="tb" class="w-full mt-1 p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:bg-white outline-none transition-all" placeholder="165">
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-xs font-bold text-slate-500 uppercase">Usia (Tahun)</label>
-                                <input type="number" id="usia" class="w-full mt-1 p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:bg-white outline-none transition-all" placeholder="20">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold text-slate-500 uppercase">Jenis Kelamin</label>
-                                <select id="jk" class="w-full mt-1 p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:bg-white outline-none transition-all">
-                                    <option value="pria">Pria</option>
-                                    <option value="wanita">Wanita</option>
-                                </select>
-                            </div>
-                        </div>
-                        <button onclick="prosesDataGizi()" class="w-full bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 transition shadow-md cursor-pointer">
-                            Hitung & Daftarkan Pengguna
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Hasil Gizi Lengkap & Kredensial -->
-                <div class="bg-white p-6 rounded-2xl shadow-md border-t-4 border-blue-500 lg:col-span-2 flex flex-col justify-between">
-                    <div>
-                        <h3 class="text-lg font-bold mb-4 text-slate-700 border-b pb-2 flex items-center gap-1">📊 Hasil Analisis Makronutrien & Energi</h3>
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-center mb-4">
-                            <div class="bg-blue-50/60 p-3 rounded-xl border border-blue-100">
-                                <p class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">IMT Anda</p>
-                                <p id="res-imt" class="text-xl font-black text-blue-600">-</p>
-                                <p id="res-status-imt" class="text-[11px] font-bold text-slate-600 mt-0.5">-</p>
-                            </div>
-                            <div class="bg-green-50/60 p-3 rounded-xl border border-green-100">
-                                <p class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Energi Harian</p>
-                                <p id="res-kalori" class="text-xl font-black text-green-600">-</p>
-                                <p class="text-[11px] font-medium text-slate-500 mt-0.5">kkal/hari</p>
-                            </div>
-                            <div class="bg-yellow-50/60 p-3 rounded-xl border border-yellow-100">
-                                <p class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Protein</p>
-                                <p id="res-protein" class="text-xl font-black text-yellow-600">-</p>
-                                <p class="text-[11px] font-medium text-slate-500 mt-0.5">gram/hari</p>
-                            </div>
-                        </div>
-
-                        <!-- KREDENSIAL LOGIN PENGGUNA -->
-                        <div id="info-kredensial" class="hidden mt-4 p-4 bg-amber-50 border border-amber-200 rounded-xl flex flex-col md:flex-row items-center justify-between gap-4">
-                            <div>
-                                <p class="text-xs font-bold text-amber-800 uppercase tracking-wider mb-1">🔑 Akun Pengguna Berhasil Dibuat!</p>
-                                <p class="text-sm text-amber-900">Username: <b id="gen-user" class="bg-white px-2 py-0.5 rounded border border-amber-300"></b></p>
-                                <p class="text-sm text-amber-900 mt-1">Password: <b id="gen-pass" class="bg-white px-2 py-0.5 rounded border border-amber-300"></b></p>
-                            </div>
-                            <p class="text-[10px] text-amber-700 italic max-w-xs leading-tight">Beritahu korban data login ini sebagai cadangan jika QR code pada stiker ompreng hilang atau rusak.</p>
-                        </div>
-                    </div>
-
-                    <div class="mt-4 pt-4 border-t border-slate-100">
-                        <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">🍱 Rekomendasi Menu Panitia yang Sesuai:</h3>
-                        <div id="rekomendasi-makanan" class="p-4 bg-slate-50 border border-dashed border-slate-200 rounded-xl text-sm text-slate-400 text-center font-medium">
-                            Silakan masukkan data diri korban dan klik hitung untuk mendaftarkan.
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="bg-white p-6 rounded-2xl shadow-md border-t-4 border-amber-500 overflow-x-auto">
-                <h3 class="text-lg font-bold mb-4 text-slate-700 border-b pb-2 flex items-center gap-1">📋 Data Distribusi Pengguna Terdaftar</h3>
-                <table class="w-full text-left border-collapse">
-                    <thead>
-                        <tr class="bg-amber-50 text-amber-800 uppercase text-[10px] tracking-widest font-bold border-b border-amber-100">
-                            <th class="p-3">Nama Peserta / Akun Login</th>
-                            <th class="p-3">IMT (Status)</th>
-                            <th class="p-3">Kalori / Karbo / Prot / Lemak</th>
-                            <th class="p-3">Rekomendasi Paket</th>
-                            <th class="p-3 text-center">Status Distribusi & Habis Makan</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tabel-lapangan" class="divide-y divide-slate-100 text-sm">
-                        <!-- Data Masuk Secara Dinamis -->
-                    </tbody>
+            <!-- Table -->
+            <div class="card mt-16">
+              <div class="card-header">
+                <div class="card-header-icon amber">📋</div>
+                <h2>Registered Residents <small id="victim-count-display">0 residents</small></h2>
+              </div>
+              <div style="overflow-x:auto;">
+                <table class="data-table">
+                  <thead><tr><th>Resident</th><th>BMI</th><th>Target</th><th>Pkg</th><th>Print</th></tr></thead>
+                  <tbody id="victim-table-body"></tbody>
                 </table>
+              </div>
             </div>
-            <button onclick="logoutPanitia()" class="mt-4 bg-slate-200 hover:bg-slate-300 text-slate-700 px-4 py-2 rounded-xl text-sm font-bold transition-all">Logout Lapangan</button>
+          </div>
+
+          <!-- Right Panel (QR Preview) -->
+          <div>
+            <div class="profile-card">
+              <div class="card-header"><div class="card-header-icon blue">📊</div><h2>Profile</h2></div>
+              <div class="profile-section">
+                <div class="profile-section-label">BMI</div>
+                <div class="profile-section-value pending" id="profile-bmi">—</div>
+                <div class="profile-section-sub" id="profile-bmi-status">Pending</div>
+              </div>
+              <div class="profile-section">
+                <div class="profile-section-label">Calories</div>
+                <div class="profile-section-value pending" id="profile-calories">—</div>
+                <div class="profile-section-sub">kcal</div>
+              </div>
+              <div class="qr-preview" id="qr-preview">
+                <div class="qr-placeholder-icon">📱</div>
+                <div class="qr-placeholder-text">Register to generate tag</div>
+              </div>
+              <button class="btn btn-success btn-block" id="btn-generate-qr" onclick="generateAndPrintQR()" disabled>
+                🖨️ Print QR Tag
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========== PAGE: KITCHEN SCAN ========== -->
+      <section class="page" id="page-kitchen">
+        <div class="page-header">
+          <h1>Kitchen Scan</h1>
+          <p>Scan QR to view profile and log meals.</p>
+        </div>
+        <div class="grid-2-1">
+          <div>
+            <!-- Scanner -->
+            <div class="scanner-wrapper mb-16">
+              <div class="scanner-video-area" id="scanner-video-area">
+                <div class="empty-state">
+                  <div class="empty-state-icon">📷</div>
+                  <div class="empty-state-text">Camera Scanner</div>
+                </div>
+                <div id="qr-reader" style="width:100%;display:none;"></div>
+              </div>
+              <div class="scanner-controls">
+                <button class="btn btn-primary btn-sm" id="btn-start-scan" onclick="toggleScanner()">📷 Start Scanner</button>
+                <input type="text" class="form-input" id="manual-scan-input" placeholder="Enter ID manually" style="flex:1;padding:8px;font-size:12px;">
+                <button class="btn btn-outline btn-sm" onclick="manualScanLookup()">Look Up</button>
+              </div>
+            </div>
+
+            <!-- Profile & Log Form -->
+            <div class="hidden" id="scanned-profile-section">
+              <div class="scanned-victim-card mb-16">
+                <div class="victim-header">
+                  <div class="victim-avatar" id="scan-avatar">?</div>
+                  <div>
+                    <div class="victim-name" id="scan-name">—</div>
+                    <div class="victim-meta" id="scan-meta">—</div>
+                  </div>
+                  <div style="margin-left:auto;" id="scan-badges"></div>
+                </div>
+                <div class="macro-grid" id="scan-targets"></div>
+              </div>
+
+              <!-- Progress -->
+              <div class="card mb-16">
+                <div class="card-header"><div class="card-header-icon green">📈</div><h2>Today's Progress</h2></div>
+                <div id="scan-progress-bars"></div>
+              </div>
+
+              <!-- Form -->
+              <div class="card mb-16">
+                <div class="card-header"><div class="card-header-icon amber">🍽️</div><h2>Log Meal</h2></div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label">Type</label>
+                    <select class="form-select" id="meal-type">
+                      <option value="breakfast">🌅 Breakfast</option>
+                      <option value="lunch">☀️ Lunch</option>
+                      <option value="dinner">🌙 Dinner</option>
+                      <option value="snack">🍎 Snack</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Items</label>
+                    <input type="text" class="form-input" id="meal-items" placeholder="Rice, chicken...">
+                  </div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group"><label class="form-label">Cal (kcal)</label><input type="number" class="form-input" id="meal-cal"></div>
+                  <div class="form-group"><label class="form-label">Prot (g)</label><input type="number" class="form-input" id="meal-prot"></div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group"><label class="form-label">Carb (g)</label><input type="number" class="form-input" id="meal-carb"></div>
+                  <div class="form-group"><label class="form-label">Fat (g)</label><input type="number" class="form-input" id="meal-fat"></div>
+                </div>
+                <div class="form-group"><label class="form-label">Calcium (mg)</label><input type="number" class="form-input" id="meal-calcium"></div>
+                <button class="btn btn-success btn-block" onclick="logMeal()">✅ Log Meal</button>
+              </div>
+            </div>
+
+            <!-- History -->
+            <div class="hidden" id="meal-history-section">
+              <div class="card">
+                <div class="card-header"><div class="card-header-icon blue">📝</div><h2>History Today</h2></div>
+                <div id="meal-history-list"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Meals -->
+          <div>
+            <div class="card">
+              <div class="card-header"><div class="card-header-icon green">📖</div><h2>Quick Reference</h2></div>
+              <div id="quick-meals-list"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========== PAGE: MONITORING ========== -->
+      <section class="page" id="page-monitoring">
+        <div class="page-header">
+          <h1>Monitoring Dashboard</h1>
+          <p>Overview of residents' status and alerts.</p>
         </div>
 
-
-        <!-- ================= DASHBOARD PANITIA DAPUR ================= -->
-        <div id="panel-dapur" class="dashboard-panel hidden">
-            <!-- Isi panel dapur sama seperti versi sebelumnya -->
-            <h2 class="text-2xl font-bold text-emerald-600 mb-6 flex items-center gap-1">🍳 Dashboard Panitia Dapur (Jumlah Masak Masal)</h2>
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div class="lg:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <!-- Kartu Porsi A, B, C -->
-                    <div class="bg-white p-5 rounded-2xl shadow-md border-b-4 border-red-500 flex flex-col justify-between hover:shadow-lg transition-all">
-                        <div>
-                            <span class="bg-red-100 text-red-800 text-[10px] px-2.5 py-1 rounded-lg font-bold tracking-wider">PAKET A</span>
-                            <h4 class="text-md font-bold mt-2 text-slate-700">Diet / Defisit</h4>
-                            <p class="text-[11px] text-slate-400 mt-0.5">Cocok untuk: Overweight</p>
-                        </div>
-                        <div class="mt-6">
-                            <p class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Jumlah Harus Dimasak</p>
-                            <p id="qty-paket-a" class="text-4xl font-black text-red-600 mt-1">0 <span class="text-xs font-normal text-slate-400">Porsi</span></p>
-                        </div>
-                    </div>
-                    <div class="bg-white p-5 rounded-2xl shadow-md border-b-4 border-blue-500 flex flex-col justify-between hover:shadow-lg transition-all">
-                        <div>
-                            <span class="bg-blue-100 text-blue-800 text-[10px] px-2.5 py-1 rounded-lg font-bold tracking-wider">PAKET B</span>
-                            <h4 class="text-md font-bold mt-2 text-slate-700">Seimbang / Normal</h4>
-                            <p class="text-[11px] text-slate-400 mt-0.5">Cocok untuk: Normal</p>
-                        </div>
-                        <div class="mt-6">
-                            <p class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Jumlah Harus Dimasak</p>
-                            <p id="qty-paket-b" class="text-4xl font-black text-blue-600 mt-1">0 <span class="text-xs font-normal text-slate-400">Porsi</span></p>
-                        </div>
-                    </div>
-                    <div class="bg-white p-5 rounded-2xl shadow-md border-b-4 border-emerald-500 flex flex-col justify-between hover:shadow-lg transition-all">
-                        <div>
-                            <span class="bg-emerald-100 text-emerald-800 text-[10px] px-2.5 py-1 rounded-lg font-bold tracking-wider">PAKET C</span>
-                            <h4 class="text-md font-bold mt-2 text-slate-700">Tinggi Kalori / Bulking</h4>
-                            <p class="text-[11px] text-slate-400 mt-0.5">Cocok untuk: Underweight</p>
-                        </div>
-                        <div class="mt-6">
-                            <p class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Jumlah Harus Dimasak</p>
-                            <p id="qty-paket-c" class="text-4xl font-black text-emerald-600 mt-1">0 <span class="text-xs font-normal text-slate-400">Porsi</span></p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="bg-white p-6 rounded-2xl shadow-md border-t-4 border-emerald-600 flex flex-col justify-between">
-                    <div>
-                        <h3 class="text-md font-bold text-slate-700 border-b pb-2 mb-4">Total Produksi Keseluruhan</h3>
-                        <div class="bg-slate-50 p-4 rounded-xl text-center border border-slate-100">
-                            <p class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Total Seluruh Paket</p>
-                            <p id="total-produksi-global" class="text-5xl font-black text-slate-800 my-2">0</p>
-                            <p class="text-xs font-semibold text-emerald-600 bg-emerald-50 py-1 rounded-lg inline-block px-3">Porsi Makanan Terdata</p>
-                        </div>
-                    </div>
-                    <p class="text-[11px] text-slate-400 italic mt-4 text-center">Angka di atas otomatis terhitung sinkron dengan jumlah pendaftar di lapangan.</p>
-                </div>
-            </div>
-
-            <!-- Rekomendasi Menu & Nutrisi Dapur -->
-            <div class="mt-6 bg-white p-6 rounded-2xl shadow-md border-t-4 border-slate-700">
-                <h3 class="text-md font-bold text-slate-700 border-b pb-2 mb-4">📋 Panduan Menu Masak Masal & Kandungan Nutrisi per Porsi</h3>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="daftar-rekomendasi-menu">
-                    <!-- Data Menu Masuk Secara Dinamis -->
-                </div>
-            </div>
-            
-            <button onclick="logoutPanitia()" class="mt-6 bg-slate-200 hover:bg-slate-300 text-slate-700 px-4 py-2 rounded-xl text-sm font-bold transition-all">Logout Dapur</button>
+        <div class="grid-4 mb-24">
+          <div class="card card-stat green"><div class="stat-label">Total</div><div class="stat-value green" id="stat-total">0</div></div>
+          <div class="card card-stat amber"><div class="stat-label">Children (≤12)</div><div class="stat-value amber" id="stat-children">0</div></div>
+          <div class="card card-stat red"><div class="stat-label">Alerts</div><div class="stat-value red" id="stat-alerts">0</div></div>
+          <div class="card card-stat blue"><div class="stat-label">Fed Today</div><div class="stat-value blue" id="stat-fed">0%</div></div>
         </div>
 
-    </div>
+        <div class="card mb-24" id="alerts-section">
+          <div class="card-header"><div class="card-header-icon red">🚨</div><h2>Priority Alerts</h2></div>
+          <div id="alerts-container"></div>
+        </div>
 
-    <!-- ================= AREA SINKRONISASI CETAK PRINTER ================= -->
-    <div id="area-cetak-stiker">
-        <h4 style="font-size: 14px; font-weight: bold; margin-bottom: 2px;">NUTRI-PANITIA BENCANA</h4>
-        <div id="qrcode-print" style="margin: 5px 0;"></div>
-        <p id="nama-print" style="font-size: 12px; font-weight: bold; text-transform: uppercase; margin-top: 2px; border-top: 1px solid #000; padding-top: 2px;"></p>
-        <p id="paket-print" style="font-size: 10px; font-style: italic; color: #333; margin-bottom: 2px;"></p>
-        <!-- Kredensial tambahan di print -->
-        <p style="font-size: 9px; margin-top: 2px; border-top: 1px dashed #666; padding-top: 2px;">Data Login Manual (Simpan!)</p>
-        <p style="font-size: 10px;">User: <b id="user-print"></b> | Pass: <b id="pass-print"></b></p>
-    </div>
+        <div class="card">
+          <div class="flex-between mb-16">
+            <div class="card-header" style="border:none;margin:0;padding:0;"><div class="card-header-icon blue">📋</div><h2>All Residents</h2></div>
+            <div class="flex gap-8">
+              <select class="form-select" id="filter-status" onchange="renderMonitoringTable()" style="padding:8px;font-size:12px;">
+                <option value="all">All</option><option value="underweight">Underweight</option><option value="normal">Normal</option><option value="overweight">Overweight</option>
+              </select>
+              <button class="btn btn-outline btn-sm" onclick="exportCSV()">📥 Export</button>
+            </div>
+          </div>
+          <div style="overflow-x:auto;">
+            <table class="data-table">
+              <thead><tr><th>Resident</th><th>Age</th><th>BMI</th><th>Cal</th><th>Progress</th><th>Tree</th><th>Alert</th></tr></thead>
+              <tbody id="monitoring-table-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
 
-    <!-- JAVASCRIPT LOGIC -->
-    <script>
-        const daftarMenuDapur = {
-            "Paket A": { 
-                nama: "Paket A (Defisit Kalori)", 
-                menuRekomen: "Nasi Merah (100g), Dada Ayam Rebus (100g), Sayur Bayam Bening, Buah Pepaya",
-                kalori: 450, prot: 30, karbo: 45, lemak: 15, cocokUntuk: "Kelebihan Berat Badan",
-                style: { bg: 'bg-red-50', border: 'border-red-100', textBadge: 'text-red-800', bgBadge: 'bg-red-200', textInfo: 'text-red-900', textSub: 'text-red-700' }
-            },
-            "Paket B": { 
-                nama: "Paket B (Nutrisi Seimbang)", 
-                menuRekomen: "Nasi Putih (150g), Telur Dadar (1 butir), Tumis Buncis Tempe, Pisang",
-                kalori: 650, prot: 45, karbo: 70, lemak: 20, cocokUntuk: "Normal",
-                style: { bg: 'bg-blue-50', border: 'border-blue-100', textBadge: 'text-blue-800', bgBadge: 'bg-blue-200', textInfo: 'text-blue-900', textSub: 'text-blue-700' }
-            },
-            "Paket C": { 
-                nama: "Paket C (Tinggi Kalori/Protein)", 
-                menuRekomen: "Nasi Putih (200g), Rendang Daging Rebus (100g), Orak Arik Telur (1 butir), Buah Jeruk",
-                kalori: 850, prot: 55, karbo: 95, lemak: 25, cocokUntuk: "Kekurangan Berat Badan",
-                style: { bg: 'bg-emerald-50', border: 'border-emerald-100', textBadge: 'text-emerald-800', bgBadge: 'bg-emerald-200', textInfo: 'text-emerald-900', textSub: 'text-emerald-700' }
-            }
-        };
+    </main>
+  </div>
 
-        let dataPesertaGlobal = [
-            { nama: "Rian Hidayat", username: "rian", password: "123", imt: 28.1, statusImt: "Kelebihan Berat Badan", kalori: 2300, karbo: 316, protein: 75, lemak: 64, serat: 30, paket: "Paket A", diambil: false, daun: 1, habisMakan: true },
-            { nama: "Siti Aminah", username: "siti", password: "123", imt: 21.3, statusImt: "Normal", kalori: 1950, karbo: 268, protein: 60, lemak: 54, serat: 30, paket: "Paket B", diambil: true, daun: 0, habisMakan: false }
-        ];
+  <!-- ===== PRINT AREA ===== -->
+  <div id="print-area">
+    <div class="print-title">NUTRITAG</div>
+    <div class="print-qr-wrap" id="print-qr"></div>
+    <div class="print-name" id="print-name"></div>
+    <div class="print-meta" id="print-meta"></div>
+    <div class="print-creds">Backup Login: ID: <b id="print-id"></b> | PIN: <b id="print-pin"></b></div>
+  </div>
 
-        let userLoginIndex = null;
-        let sessionLapangan = false;
-        let sessionDapur = false;
-        let targetRoleLogin = '';
+  <!-- ===== TOAST ===== -->
+  <div class="toast hidden" id="toast-notification"></div>
 
-        function switchRole(role) {
-            document.querySelectorAll('.dashboard-panel').forEach(panel => panel.classList.add('hidden'));
-            
-            if(role === 'pengguna') {
-                if (userLoginIndex !== null) {
-                    document.getElementById('panel-pengguna').classList.remove('hidden');
-                    document.getElementById('area-login-qr').classList.add('hidden');
-                    document.getElementById('konten-pengguna').classList.remove('hidden');
-                } else {
-                    document.getElementById('panel-pengguna').classList.remove('hidden');
-                    document.getElementById('area-login-qr').classList.remove('hidden');
-                    document.getElementById('konten-pengguna').classList.add('hidden');
-                }
-            } 
-            else if(role === 'lapangan') {
-                if(sessionLapangan) {
-                    document.getElementById('panel-lapangan').classList.remove('hidden');
-                    renderLapangan();
-                } else {
-                    tampilkanFormLogin('lapangan');
-                }
-            } 
-            else if(role === 'dapur') {
-                if(sessionDapur) {
-                    document.getElementById('panel-dapur').classList.remove('hidden');
-                    renderDapur();
-                } else {
-                    tampilkanFormLogin('dapur');
-                }
-            }
-        }
-
-        // --- FITUR LOGIN PANITIA ---
-        function tampilkanFormLogin(role) {
-            targetRoleLogin = role;
-            document.getElementById('panel-login-panitia').classList.remove('hidden');
-            document.getElementById('login-username').value = '';
-            document.getElementById('login-password').value = '';
-            
-            if(role === 'lapangan') {
-                document.getElementById('judul-login').innerText = "Login Panitia Lapangan";
-                document.getElementById('ikon-login').innerText = "📋";
-                document.getElementById('hint-login').innerText = "Hint: username 'dafi', pass '123'";
-            } else {
-                document.getElementById('judul-login').innerText = "Login Panitia Dapur";
-                document.getElementById('ikon-login').innerText = "🍳";
-                document.getElementById('hint-login').innerText = "Hint: username 'dapur', pass '123'";
-            }
-        }
-
-        function prosesLoginPanitia() {
-            const u = document.getElementById('login-username').value.toLowerCase();
-            const p = document.getElementById('login-password').value;
-
-            if(targetRoleLogin === 'lapangan' && u === 'dafi' && p === '123') {
-                sessionLapangan = true;
-                switchRole('lapangan');
-            } else if(targetRoleLogin === 'dapur' && u === 'dapur' && p === '123') {
-                sessionDapur = true;
-                switchRole('dapur');
-            } else {
-                alert("Username atau Password salah!");
-            }
-        }
-
-        function logoutPanitia() {
-            sessionLapangan = false;
-            sessionDapur = false;
-            switchRole('pengguna'); 
-        }
-
-        // --- FITUR LOGIN PENGGUNA ---
-        function loginManualPengguna() {
-            const u = document.getElementById('user-manual-username').value.toLowerCase().trim();
-            const p = document.getElementById('user-manual-password').value;
-
-            const targetIndex = dataPesertaGlobal.findIndex(user => user.username === u && user.password === p);
-
-            if(targetIndex !== -1) {
-                userLoginIndex = targetIndex;
-                document.getElementById('area-login-qr').classList.add('hidden');
-                document.getElementById('konten-pengguna').classList.remove('hidden');
-                updateKebunPengguna();
-            } else {
-                alert("Username atau Password tidak ditemukan. Silakan hubungi Panitia Lapangan.");
-            }
-        }
-
-        function logoutPengguna() {
-            userLoginIndex = null;
-            document.getElementById('user-manual-username').value = '';
-            document.getElementById('user-manual-password').value = '';
-            switchRole('pengguna');
-        }
-
-        function updateKebunPengguna() {
-            if(userLoginIndex === null) return;
-            const user = dataPesertaGlobal[userLoginIndex];
-
-            document.getElementById('nama-pemilik-kebun').innerText = `(${user.nama})`;
-            document.getElementById('txt-daun-pohon').innerText = `${user.daun} Helai Daun`;
-
-            let visual = "🌱";
-            if(user.daun === 1) visual = "🌿";
-            if(user.daun === 2) visual = "🌳";
-            if(user.daun >= 3) visual = "🌳✨🥞";
-            document.getElementById('visual-pohon').innerText = visual;
-
-            let pesan = "";
-            if (user.statusImt === "Kekurangan Berat Badan" || user.kalori > 2000) {
-                pesan = `👋 Halo ${user.nama}, tubuhmu memerlukan energi ekstra sebanyak ${user.kalori} kkal. Habiskan jatah makananmu dari panitia ya agar pohonmu tumbuh rimbun!`;
-            } else if (user.statusImt === "Kelebihan Berat Badan") {
-                pesan = `👋 Halo ${user.nama}, porsi makanmu sudah diatur seimbang. Yuk, habiskan porsi sehatmu hari ini!`;
-            } else {
-                pesan = `👋 Halo ${user.nama}, kondisi fisikmu terpantau ideal! Jaga terus performa tubuhmu di pengungsian dengan menghabiskan menu dari panitia dapur ya.`;
-            }
-            document.getElementById('pesan-motivasi-bencana').innerText = pesan;
-        }
-
-        // --- FITUR PANITIA LAPANGAN (REGISTRASI KORBAN) ---
-        function prosesDataGizi() {
-            const nama = document.getElementById('nama').value.trim();
-            const bb = parseFloat(document.getElementById('bb').value);
-            const tb = parseFloat(document.getElementById('tb').value) / 100;
-            const usia = parseInt(document.getElementById('usia').value);
-            const jk = document.getElementById('jk').value;
-
-            if(!nama || !bb || !tb || !usia) {
-                alert("Silakan lengkapi seluruh form terlebih dahulu!");
-                return;
-            }
-
-            const imt = (bb / (tb * tb)).toFixed(1);
-            let statusImt = "";
-            let paketDipilih = "";
-
-            if (imt < 18.5) {
-                statusImt = "Kekurangan Berat Badan";
-                paketDipilih = "Paket C";
-            } else if (imt >= 18.5 && imt < 25) {
-                statusImt = "Normal";
-                paketDipilih = "Paket B";
-            } else {
-                statusImt = "Kelebihan Berat Badan";
-                paketDipilih = "Paket A";
-            }
-
-            let bmr = (jk === 'pria') 
-                ? (10 * bb) + (6.25 * (tb * 100)) - (5 * usia) + 5
-                : (10 * bb) + (6.25 * (tb * 100)) - (5 * usia) - 161;
-            
-            const totalKalori = Math.round(bmr * 1.3);
-            const protein = Math.round(bb * 1.2);                
-            const karbohidrat = Math.round((totalKalori * 0.55) / 4); 
-            const lemak = Math.round((totalKalori * 0.25) / 9);        
-            const serat = 30; 
-
-            // Generate Username & Password
-            const generatedUsername = nama.toLowerCase().replace(/\s/g, '').substring(0, 8) + Math.floor(10 + Math.random() * 90);
-            const generatedPassword = Math.floor(100000 + Math.random() * 900000).toString(); // 6 digit PIN
-
-            document.getElementById('res-imt').innerText = imt;
-            document.getElementById('res-status-imt').innerText = statusImt;
-            document.getElementById('res-kalori').innerText = totalKalori;
-            document.getElementById('res-protein').innerText = protein;
-            document.getElementById('res-karbo').innerText = karbohidrat;
-            document.getElementById('res-lemak').innerText = lemak;
-            document.getElementById('res-serat').innerText = serat;
-
-            // Tampilkan Kredensial ke Panitia Lapangan
-            document.getElementById('info-kredensial').classList.remove('hidden');
-            document.getElementById('gen-user').innerText = generatedUsername;
-            document.getElementById('gen-pass').innerText = generatedPassword;
-
-            const menu = daftarMenuDapur[paketDipilih];
-            document.getElementById('rekomendasi-makanan').innerHTML = `
-                <div class="bg-emerald-50 text-emerald-900 p-4 rounded-xl border border-emerald-200 text-left">
-                    <p class="font-bold text-sm text-emerald-800 flex items-center gap-1">✨ Direkomendasikan: ${menu.nama}</p>
-                    <p class="text-xs mt-1 text-slate-600 leading-relaxed">Sistem sedang mencetak stiker QR Code, tempelkan pada wadah makan korban.</p>
-                </div>
-            `;
-
-            dataPesertaGlobal.push({
-                nama: nama, username: generatedUsername, password: generatedPassword, 
-                imt: parseFloat(imt), statusImt: statusImt, kalori: totalKalori,
-                karbo: karbohidrat, protein: protein, lemak: lemak, serat: serat, paket: paketDipilih,
-                diambil: false, daun: 0, habisMakan: false
-            });
-
-            renderLapangan();
-            printStikerOmpreng(nama, paketDipilih, generatedUsername, generatedPassword);
-            
-            // Reset Form
-            document.getElementById('nama').value = '';
-            document.getElementById('bb').value = '';
-            document.getElementById('tb').value = '';
-            document.getElementById('usia').value = '';
-        }
-
-        function printStikerOmpreng(namaUser, paket, uname, pass) {
-            document.getElementById('qrcode-print').innerHTML = ""; 
-            document.getElementById('nama-print').innerText = namaUser;
-            document.getElementById('paket-print').innerText = "Menu: " + paket;
-            document.getElementById('user-print').innerText = uname;
-            document.getElementById('pass-print').innerText = pass;
-            
-            new QRCode(document.getElementById("qrcode-print"), {
-                text: "LOGIN_MUTRI_PANITIA_" + namaUser.toUpperCase().replace(/\s+/g, '_'),
-                width: 110,
-                height: 110
-            });
-
-            setTimeout(() => {
-                window.print();
-            }, 300);
-        }
-
-        function renderLapangan() {
-            const tbody = document.getElementById('tabel-lapangan');
-            tbody.innerHTML = "";
-            
-            if(dataPesertaGlobal.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-400">Belum ada data peserta masuk.</td></tr>`;
-                return;
-            }
-
-            dataPesertaGlobal.forEach((p, index) => {
-                tbody.innerHTML += `
-                    <tr class="border-b border-slate-100 hover:bg-slate-50 transition-all">
-                        <td class="p-3">
-                            <div class="font-bold text-slate-800">${p.nama}</div>
-                            <div class="text-[10px] text-slate-500 font-mono mt-0.5">User: ${p.username} | Pass: ${p.password}</div>
-                            <button onclick="printStikerOmpreng('${p.nama}', '${p.paket}', '${p.username}', '${p.password}')" class="mt-1 bg-blue-50 hover:bg-blue-100 text-blue-600 font-bold text-[11px] px-2.5 py-1 rounded-lg border border-blue-200 transition-all cursor-pointer flex items-center gap-1">
-                                🖨️ Cetak Stiker
-                            </button>
-                        </td>
-                        <td class="p-3">
-                            <span class="block font-bold text-slate-700">${p.imt}</span>
-                            <span class="text-xs text-slate-500 font-medium">${p.statusImt}</span>
-                        </td>
-                        <td class="p-3 text-[11px] space-y-1 text-slate-600 font-medium">
-                            <div class="text-slate-700">🔥 Kalori: <b class="text-green-600">${p.kalori} kkal</b></div>
-                            <div class="bg-slate-100 p-1 rounded-md text-[10px] text-slate-500">🍞 K: <b>${p.karbo}g</b> | 🥩 P: <b>${p.protein}g</b> | 🥑 L: <b>${p.lemak}g</b></div>
-                        </td>
-                        <td class="p-3">
-                            <span class="px-2.5 py-1 text-xs font-black rounded-lg ${
-                                p.paket === 'Paket A' ? 'bg-red-50 text-red-700 border border-red-200' : 
-                                p.paket === 'Paket B' ? 'bg-blue-50 text-blue-700 border border-blue-200' : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                            }">${p.paket}</span>
-                        </td>
-                        <td class="p-3">
-                            <div class="flex flex-col sm:flex-row items-center justify-center gap-2">
-                                <button onclick="toggleStatusAmbil(${index})" class="w-full sm:w-auto px-3 py-1.5 text-xs rounded-lg font-bold shadow-xs transition-all cursor-pointer ${
-                                    p.diambil ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-slate-200 text-slate-700 hover:bg-slate-300'
-                                }">
-                                    ${p.diambil ? 'Sudah Diambil ✓' : 'Belum Diambil'}
-                                </button>
-                                
-                                <button onclick="konfirmasiHabisMakan(${index})" class="w-full sm:w-auto px-3 py-1.5 text-xs rounded-lg font-bold shadow-xs transition-all cursor-pointer ${
-                                    p.habisMakan ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100'
-                                }" ${!p.diambil ? 'disabled title="Ambil makanan dulu"' : ''}>
-                                    ${p.habisMakan ? 'Makanan Habis (Daun +1)' : 'Konfirmasi Habis'}
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                `;
-            });
-        }
-
-        function toggleStatusAmbil(index) {
-            dataPesertaGlobal[index].diambil = !dataPesertaGlobal[index].diambil;
-            if(!dataPesertaGlobal[index].diambil) {
-                dataPesertaGlobal[index].habisMakan = false;
-                dataPesertaGlobal[index].daun = 0;
-            }
-            renderLapangan();
-        }
-
-        function konfirmasiHabisMakan(index) {
-            if(!dataPesertaGlobal[index].diambil) return;
-            
-            dataPesertaGlobal[index].habisMakan = !dataPesertaGlobal[index].habisMakan;
-            if(dataPesertaGlobal[index].habisMakan) {
-                dataPesertaGlobal[index].daun += 1;
-            } else {
-                dataPesertaGlobal[index].daun = Math.max(0, dataPesertaGlobal[index].daun - 1);
-            }
-            renderLapangan();
-        }
-
-        function renderDapur() {
-            let porsiA = 0; let porsiB = 0; let porsiC = 0;
-            dataPesertaGlobal.forEach(p => {
-                if (p.paket === "Paket A") porsiA++;
-                if (p.paket === "Paket B") porsiB++;
-                if (p.paket === "Paket C") porsiC++;
-            });
-            document.getElementById('qty-paket-a').innerHTML = `${porsiA} <span class="text-xs font-normal text-slate-400">Porsi</span>`;
-            document.getElementById('qty-paket-b').innerHTML = `${porsiB} <span class="text-xs font-normal text-slate-400">Porsi</span>`;
-            document.getElementById('qty-paket-c').innerHTML = `${porsiC} <span class="text-xs font-normal text-slate-400">Porsi</span>`;
-            document.getElementById('total-produksi-global').innerText = dataPesertaGlobal.length;
-
-            const menuContainer = document.getElementById('daftar-rekomendasi-menu');
-            menuContainer.innerHTML = '';
-            
-            Object.keys(daftarMenuDapur).forEach(key => {
-                const item = daftarMenuDapur[key];
-                const s = item.style;
-                
-                menuContainer.innerHTML += `
-                    <div class="${s.bg} p-5 rounded-2xl border ${s.border} flex flex-col justify-between">
-                        <div>
-                            <span class="${s.bgBadge} ${s.textBadge} text-[10px] px-2 py-1 rounded font-bold uppercase tracking-wider">${key}</span>
-                            <h4 class="text-sm font-bold mt-3 ${s.textInfo}">${item.menuRekomen}</h4>
-                        </div>
-                        <div class="mt-4 pt-3 border-t border-white/50">
-                            <p class="text-[10px] font-bold uppercase tracking-wider mb-2 text-slate-500">Estimasi Nutrisi per Porsi:</p>
-                            <div class="grid grid-cols-2 gap-2 text-[11px] ${s.textSub} font-medium">
-                                <div class="bg-white/40 p-1.5 rounded-lg">🔥 Kalori: <b>${item.kalori} kkal</b></div>
-                                <div class="bg-white/40 p-1.5 rounded-lg">🥩 Protein: <b>${item.prot}g</b></div>
-                                <div class="bg-white/40 p-1.5 rounded-lg">🍞 Karbo: <b>${item.karbo}g</b></div>
-                                <div class="bg-white/40 p-1.5 rounded-lg">🥑 Lemak: <b>${item.lemak}g</b></div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            });
-        }
-    </script>
+  <!-- Logic -->
+  <script src="assets/js/main.js"></script>
 </body>
 </html>

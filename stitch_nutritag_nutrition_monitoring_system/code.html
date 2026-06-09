@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>NutriTag - Field Registration</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&amp;family=Atkinson+Hyperlegible+Next:wght@400;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "surface": "#f8f9ff",
+                        "tertiary-fixed": "#d8e2ff",
+                        "surface-bright": "#f8f9ff",
+                        "on-primary": "#ffffff",
+                        "on-secondary": "#ffffff",
+                        "surface-container-high": "#dce9ff",
+                        "secondary": "#855300",
+                        "on-error-container": "#93000a",
+                        "surface-tint": "#006c4e",
+                        "surface-container-lowest": "#ffffff",
+                        "background": "#f8f9ff",
+                        "primary-container": "#008560",
+                        "secondary-fixed-dim": "#ffb95f",
+                        "primary-fixed-dim": "#68dbae",
+                        "surface-dim": "#ccdbf3",
+                        "secondary-container": "#fea619",
+                        "on-secondary-fixed": "#2a1700",
+                        "on-secondary-fixed-variant": "#653e00",
+                        "error": "#ba1a1a",
+                        "on-surface-variant": "#3d4943",
+                        "on-tertiary": "#ffffff",
+                        "inverse-primary": "#68dbae",
+                        "on-tertiary-container": "#fefcff",
+                        "on-secondary-container": "#684000",
+                        "on-primary-fixed-variant": "#00513a",
+                        "outline-variant": "#bccac1",
+                        "on-error": "#ffffff",
+                        "on-tertiary-fixed": "#001a42",
+                        "on-primary-container": "#f5fff7",
+                        "surface-container-low": "#eff4ff",
+                        "primary-fixed": "#86f8c9",
+                        "inverse-surface": "#233144",
+                        "tertiary-container": "#2170e4",
+                        "error-container": "#ffdad6",
+                        "secondary-fixed": "#ffddb8",
+                        "surface-variant": "#d5e3fc",
+                        "primary": "#00694c",
+                        "tertiary-fixed-dim": "#adc6ff",
+                        "on-tertiary-fixed-variant": "#004395",
+                        "outline": "#6d7a73",
+                        "on-surface": "#0d1c2e",
+                        "surface-container-highest": "#d5e3fc",
+                        "tertiary": "#0058be",
+                        "inverse-on-surface": "#eaf1ff",
+                        "on-background": "#0d1c2e",
+                        "surface-container": "#e6eeff",
+                        "on-primary-fixed": "#002115"
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    spacing: {
+                        "xs": "4px",
+                        "xl": "32px",
+                        "margin-safe": "24px",
+                        "sm": "8px",
+                        "gutter-desktop": "24px",
+                        "lg": "24px",
+                        "base": "8px",
+                        "gutter-mobile": "16px",
+                        "md": "16px"
+                    },
+                    fontFamily: {
+                        "body-lg": ["Atkinson Hyperlegible Next"],
+                        "code-sm": ["Atkinson Hyperlegible Next"],
+                        "headline-lg": ["Plus Jakarta Sans"],
+                        "body-md": ["Atkinson Hyperlegible Next"],
+                        "headline-lg-mobile": ["Plus Jakarta Sans"],
+                        "title-md": ["Plus Jakarta Sans"],
+                        "display-lg": ["Plus Jakarta Sans"],
+                        "label-md": ["Atkinson Hyperlegible Next"]
+                    },
+                    fontSize: {
+                        "body-lg": ["18px", { lineHeight: "28px", fontWeight: "400" }],
+                        "code-sm": ["12px", { lineHeight: "16px", fontWeight: "700" }],
+                        "headline-lg": ["32px", { lineHeight: "40px", fontWeight: "600" }],
+                        "body-md": ["16px", { lineHeight: "24px", fontWeight: "400" }],
+                        "headline-lg-mobile": ["24px", { lineHeight: "32px", fontWeight: "600" }],
+                        "title-md": ["20px", { lineHeight: "28px", fontWeight: "600" }],
+                        "display-lg": ["48px", { lineHeight: "56px", letterSpacing: "-0.02em", fontWeight: "700" }],
+                        "label-md": ["14px", { lineHeight: "20px", letterSpacing: "0.01em", fontWeight: "600" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { background-color: theme('colors.background'); color: theme('colors.on-background'); }
+        /* Tonal Layer 1 */
+        .layer-1 { background-color: theme('colors.surface-container-lowest'); border: 1px solid theme('colors.surface-container-high'); }
+        /* Tonal Layer 2 */
+        .layer-2 { background-color: theme('colors.surface-container-lowest'); box-shadow: 0 4px 8px rgba(0,0,0,0.05); }
+    </style>
+</head>
+<body class="flex min-h-screen bg-background font-body-md text-on-background antialiased">
+<!-- SideNavBar (Desktop Only) -->
+<nav class="bg-surface-container-low border-r border-outline-variant w-64 fixed left-0 top-0 hidden md:flex flex-col h-full p-md z-40">
+<div class="mb-8 flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center font-bold">SA</div>
+<div>
+<h2 class="font-title-md text-title-md text-on-surface">Shelter Alpha-1</h2>
+<p class="font-label-md text-label-md text-on-surface-variant">Disaster Relief Unit</p>
+</div>
+</div>
+<button class="w-full bg-error text-on-error font-label-md text-label-md py-3 rounded-lg mb-6 flex items-center justify-center gap-2 hover:bg-red-700 transition-colors">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">warning</span>
+            Emergency Alert
+        </button>
+<ul class="flex flex-col gap-2 flex-grow">
+<li>
+<a class="bg-primary-container text-on-primary-container rounded-xl font-bold flex items-center gap-3 p-3 transition-transform scale-95" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">person_add</span>
+<span class="font-label-md text-label-md">Registration</span>
+</a>
+</li>
+<li>
+<a class="text-on-surface-variant hover:bg-surface-variant flex items-center gap-3 p-3 rounded-xl transition-all" href="#">
+<span class="material-symbols-outlined">qr_code_scanner</span>
+<span class="font-label-md text-label-md">Kitchen Scan</span>
+</a>
+</li>
+<li>
+<a class="text-on-surface-variant hover:bg-surface-variant flex items-center gap-3 p-3 rounded-xl transition-all" href="#">
+<span class="material-symbols-outlined">park</span>
+<span class="font-label-md text-label-md">My Pohon</span>
+</a>
+</li>
+<li>
+<a class="text-on-surface-variant hover:bg-surface-variant flex items-center gap-3 p-3 rounded-xl transition-all" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label-md text-label-md">Monitoring</span>
+</a>
+</li>
+</ul>
+<ul class="flex flex-col gap-2 mt-auto pt-4 border-t border-outline-variant">
+<li>
+<a class="text-on-surface-variant hover:bg-surface-variant flex items-center gap-3 p-3 rounded-xl transition-all" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-label-md text-label-md">Settings</span>
+</a>
+</li>
+<li>
+<a class="text-on-surface-variant hover:bg-surface-variant flex items-center gap-3 p-3 rounded-xl transition-all" href="#">
+<span class="material-symbols-outlined">help</span>
+<span class="font-label-md text-label-md">Support</span>
+</a>
+</li>
+</ul>
+</nav>
+<!-- TopNavBar (Mobile Only) -->
+<header class="bg-surface border-b border-outline-variant w-full md:hidden fixed top-0 z-40 px-gutter-mobile py-4 flex justify-between items-center">
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile font-bold text-primary">NutriTag</h1>
+<div class="flex gap-4">
+<button class="text-on-surface-variant hover:text-primary-container transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="text-on-surface-variant hover:text-primary-container transition-colors">
+<span class="material-symbols-outlined">account_circle</span>
+</button>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="w-full md:ml-64 pt-20 md:pt-0 p-gutter-mobile md:p-gutter-desktop max-w-7xl mx-auto min-h-screen pb-32">
+<div class="mb-8">
+<h1 class="font-headline-lg text-headline-lg text-primary mb-2">New Resident Registration</h1>
+<p class="font-body-md text-body-md text-on-surface-variant">Enter vital statistics to generate a personalized nutritional profile and QR Tag.</p>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+<!-- Registration Form Area (Bento Grid Style) -->
+<div class="lg:col-span-8 flex flex-col gap-6">
+<form class="layer-1 rounded-xl p-6 md:p-8 flex flex-col gap-6" id="registrationForm">
+<!-- Name Input -->
+<div class="relative">
+<input class="block w-full px-4 py-3 rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface font-body-md text-body-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary peer placeholder-transparent" id="residentName" placeholder="Full Name" required="" type="text"/>
+<label class="absolute left-4 -top-2.5 bg-surface-container-lowest px-1 text-on-surface-variant font-label-md text-label-md transition-all peer-placeholder-shown:text-body-md peer-placeholder-shown:top-3 peer-focus:-top-2.5 peer-focus:text-primary peer-focus:text-label-md" for="residentName">Full Name</label>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<!-- Age Input -->
+<div class="relative">
+<input class="block w-full px-4 py-3 rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface font-body-md text-body-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary peer placeholder-transparent" id="residentAge" placeholder="Age" required="" type="number"/>
+<label class="absolute left-4 -top-2.5 bg-surface-container-lowest px-1 text-on-surface-variant font-label-md text-label-md transition-all peer-placeholder-shown:text-body-md peer-placeholder-shown:top-3 peer-focus:-top-2.5 peer-focus:text-primary peer-focus:text-label-md" for="residentAge">Age (Years)</label>
+</div>
+<!-- Gender Select -->
+<div class="relative">
+<select class="block w-full px-4 py-3 rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface font-body-md text-body-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary appearance-none" id="residentGender" required="">
+<option disabled="" selected="" value="">Select Gender</option>
+<option value="male">Male</option>
+<option value="female">Female</option>
+</select>
+<span class="material-symbols-outlined absolute right-4 top-3.5 text-on-surface-variant pointer-events-none">expand_more</span>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<!-- Weight Input -->
+<div class="relative">
+<input class="block w-full px-4 py-3 rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface font-body-md text-body-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary peer placeholder-transparent" id="residentWeight" placeholder="Weight" required="" step="0.1" type="number"/>
+<label class="absolute left-4 -top-2.5 bg-surface-container-lowest px-1 text-on-surface-variant font-label-md text-label-md transition-all peer-placeholder-shown:text-body-md peer-placeholder-shown:top-3 peer-focus:-top-2.5 peer-focus:text-primary peer-focus:text-label-md" for="residentWeight">Weight (kg)</label>
+</div>
+<!-- Height Input -->
+<div class="relative">
+<input class="block w-full px-4 py-3 rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface font-body-md text-body-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary peer placeholder-transparent" id="residentHeight" placeholder="Height" required="" step="0.1" type="number"/>
+<label class="absolute left-4 -top-2.5 bg-surface-container-lowest px-1 text-on-surface-variant font-label-md text-label-md transition-all peer-placeholder-shown:text-body-md peer-placeholder-shown:top-3 peer-focus:-top-2.5 peer-focus:text-primary peer-focus:text-label-md" for="residentHeight">Height (cm)</label>
+</div>
+</div>
+<div class="pt-4 flex gap-4">
+<button class="flex-1 bg-surface-variant text-on-surface font-label-md text-label-md h-14 rounded-lg flex items-center justify-center gap-2 hover:bg-surface-container-highest transition-colors border border-outline-variant" id="calculateBtn" type="button">
+<span class="material-symbols-outlined">calculate</span>
+                            Calculate Metrics
+                        </button>
+</div>
+</form>
+</div>
+<!-- Calculation Results & QR Code (Glassmorphism / Accent Panel) -->
+<div class="lg:col-span-4 flex flex-col gap-6">
+<!-- Metrics Panel -->
+<div class="layer-2 rounded-xl p-6 bg-gradient-to-br from-surface-container-low to-surface-container border border-surface-container-high relative overflow-hidden">
+<div class="absolute top-0 right-0 p-4 opacity-10">
+<span class="material-symbols-outlined text-9xl text-primary">monitor_heart</span>
+</div>
+<h3 class="font-title-md text-title-md text-primary mb-4 flex items-center gap-2 relative z-10">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">analytics</span>
+                        Nutritional Profile
+                    </h3>
+<div class="flex flex-col gap-4 relative z-10">
+<div class="bg-surface-container-lowest p-4 rounded-lg border border-surface-container">
+<p class="font-label-md text-label-md text-on-surface-variant mb-1">Body Mass Index (BMI)</p>
+<div class="flex items-end gap-2">
+<span class="font-display-lg text-display-lg text-on-surface" id="bmiValue">--</span>
+<span class="font-body-md text-body-md text-on-surface-variant pb-2" id="bmiCategory">Pending</span>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-4 rounded-lg border border-surface-container">
+<p class="font-label-md text-label-md text-on-surface-variant mb-1">Daily Calorie Target (Est.)</p>
+<div class="flex items-end gap-2">
+<span class="font-display-lg text-display-lg text-primary" id="calorieValue">--</span>
+<span class="font-body-md text-body-md text-on-surface-variant pb-2">kcal</span>
+</div>
+</div>
+</div>
+</div>
+<!-- QR Generation Action -->
+<div class="layer-1 rounded-xl p-6 flex flex-col items-center justify-center text-center gap-4">
+<div class="w-48 h-48 bg-surface-container-high rounded-xl flex items-center justify-center border-2 border-dashed border-outline-variant mb-2" id="qrPreviewArea">
+<span class="material-symbols-outlined text-outline text-4xl">qr_code_2</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant" id="qrStatusText">Calculate metrics to enable tag generation.</p>
+<button class="w-full bg-primary text-on-primary font-label-md text-label-md h-14 rounded-lg flex items-center justify-center gap-2 hover:bg-primary-container hover:text-on-primary-container transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled="" id="generateQRBtn">
+<span class="material-symbols-outlined">print</span>
+                        Generate &amp; Print QR Tag
+                    </button>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="bg-surface border-t border-surface-container shadow-lg w-full md:hidden fixed bottom-0 left-0 z-50 flex justify-around items-center px-4 py-2 pb-safe rounded-t-xl">
+<a class="flex flex-col items-center justify-center text-on-surface-variant" href="#">
+<span class="material-symbols-outlined mb-1">edit_document</span>
+<span class="font-label-md text-xs">Field</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-full px-4 py-1 scale-90 transition-transform duration-150" href="#">
+<span class="material-symbols-outlined mb-1" style="font-variation-settings: 'FILL' 1;">person_add</span>
+<span class="font-label-md text-xs">Register</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant" href="#">
+<span class="material-symbols-outlined mb-1">center_focus_strong</span>
+<span class="font-label-md text-xs">Kitchen</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant" href="#">
+<span class="material-symbols-outlined mb-1">analytics</span>
+<span class="font-label-md text-xs">Monitor</span>
+</a>
+</nav>
+<script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const calculateBtn = document.getElementById('calculateBtn');
+            const generateQRBtn = document.getElementById('generateQRBtn');
+            const qrPreviewArea = document.getElementById('qrPreviewArea');
+            const qrStatusText = document.getElementById('qrStatusText');
+            
+            calculateBtn.addEventListener('click', () => {
+                const weight = parseFloat(document.getElementById('residentWeight').value);
+                const height = parseFloat(document.getElementById('residentHeight').value);
+                const age = parseInt(document.getElementById('residentAge').value);
+                const gender = document.getElementById('residentGender').value;
+
+                if (!weight || !height || !age || !gender) {
+                    alert('Please fill in all physical metrics to calculate.');
+                    return;
+                }
+
+                // BMI Calculation
+                const heightInMeters = height / 100;
+                const bmi = weight / (heightInMeters * heightInMeters);
+                const bmiFormatted = bmi.toFixed(1);
+                
+                let bmiCat = "";
+                let bmiColorClass = "text-on-surface";
+                if (bmi < 18.5) { bmiCat = "Underweight"; bmiColorClass = "text-secondary"; }
+                else if (bmi < 25) { bmiCat = "Normal"; bmiColorClass = "text-primary"; }
+                else if (bmi < 30) { bmiCat = "Overweight"; bmiColorClass = "text-secondary-container"; }
+                else { bmiCat = "Obese"; bmiColorClass = "text-error"; }
+
+                const bmiElement = document.getElementById('bmiValue');
+                bmiElement.textContent = bmiFormatted;
+                bmiElement.className = `font-display-lg text-display-lg ${bmiColorClass}`;
+                document.getElementById('bmiCategory').textContent = bmiCat;
+
+                // Mifflin-St Jeor Equation
+                let bmr = (10 * weight) + (6.25 * height) - (5 * age);
+                if (gender === 'male') {
+                    bmr += 5;
+                } else {
+                    bmr -= 161;
+                }
+                
+                // Sedentary activity multiplier as baseline for shelter
+                const dailyCalories = Math.round(bmr * 1.2);
+                document.getElementById('calorieValue').textContent = dailyCalories;
+
+                // Enable QR Gen
+                generateQRBtn.removeAttribute('disabled');
+                qrStatusText.textContent = "Ready to generate tag for container.";
+                qrPreviewArea.classList.replace('bg-surface-container-high', 'bg-tertiary-fixed');
+                qrPreviewArea.innerHTML = '<span class="material-symbols-outlined text-tertiary text-6xl animate-pulse">qr_code_scanner</span>';
+            });
+
+            generateQRBtn.addEventListener('click', () => {
+                const name = document.getElementById('residentName').value || 'Resident';
+                qrStatusText.innerHTML = `<span class="text-primary font-bold">Tag Generated for ${name}</span>`;
+                qrPreviewArea.classList.replace('bg-tertiary-fixed', 'bg-primary-container');
+                qrPreviewArea.innerHTML = '<img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=NutriTag-Registration-Success" alt="Generated QR Code" class="w-32 h-32 rounded bg-white p-1 shadow-sm" data-alt="A close up image of a cleanly printed black and white QR code on a small white sticker. The sticker is placed on a smooth, slightly reflective light grey surface, resembling a food container lid. The lighting is bright and evenly distributed, highlighting the sharp contrast of the QR code. The overall mood is sterile, efficient, and clinical, fitting a modern relief organization logistics system.">';
+            });
+        });
+    </script>
+</body></html>
