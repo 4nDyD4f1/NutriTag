@@ -48,6 +48,8 @@ let state = {
   lastRegistered: null,
   scannerInstance: null,
   scannerActive: false,
+  loginScannerInstance: null,
+  loginScannerActive: false,
   map: null
 };
 
@@ -191,6 +193,8 @@ function backToRole() {
   document.getElementById('login-panitia-pass').value = '';
   document.getElementById('login-user-id').value = '';
   document.getElementById('login-user-pin').value = '';
+
+  if (state.loginScannerActive) stopLoginScanner();
 }
 
 function loginPanitia() {
@@ -218,7 +222,90 @@ function loginPengguna() {
   
   state.pohonUser = victim;
   state.currentUserRole = 'pengguna';
+  if (state.loginScannerActive) stopLoginScanner();
   enterApp();
+}
+
+function toggleLoginMethod(method) {
+  const manualBtn = document.getElementById('tab-login-manual');
+  const qrBtn = document.getElementById('tab-login-qr');
+  const manualSec = document.getElementById('login-manual-section');
+  const qrSec = document.getElementById('login-qr-section');
+
+  if (method === 'manual') {
+    manualBtn.style.background = 'var(--card)';
+    manualBtn.style.color = 'var(--text)';
+    manualBtn.style.boxShadow = 'var(--shadow-sm)';
+    qrBtn.style.background = 'transparent';
+    qrBtn.style.color = 'var(--text-muted)';
+    qrBtn.style.boxShadow = 'none';
+    
+    manualSec.classList.remove('hidden');
+    qrSec.classList.add('hidden');
+    if (state.loginScannerActive) stopLoginScanner();
+  } else {
+    qrBtn.style.background = 'var(--card)';
+    qrBtn.style.color = 'var(--text)';
+    qrBtn.style.boxShadow = 'var(--shadow-sm)';
+    manualBtn.style.background = 'transparent';
+    manualBtn.style.color = 'var(--text-muted)';
+    manualBtn.style.boxShadow = 'none';
+    
+    qrSec.classList.remove('hidden');
+    manualSec.classList.add('hidden');
+  }
+}
+
+function toggleLoginScanner() {
+  state.loginScannerActive ? stopLoginScanner() : startLoginScanner();
+}
+
+function startLoginScanner() {
+  const el = document.getElementById('login-qr-reader');
+  document.getElementById('login-qr-placeholder').style.display = 'none';
+  el.style.display = 'block';
+  
+  state.loginScannerInstance = new Html5Qrcode('login-qr-reader');
+  state.loginScannerInstance.start({facingMode:'environment'}, {fps:10, qrbox:200}, (txt) => {
+    onLoginQRScanned(txt); 
+    stopLoginScanner();
+  }, () => {}).then(() => {
+    state.loginScannerActive = true;
+    document.getElementById('btn-login-scan').innerHTML = '⏹️ Stop Scan';
+    document.getElementById('btn-login-scan').classList.replace('btn-success', 'btn-danger');
+  });
+}
+
+function stopLoginScanner() {
+  if (state.loginScannerInstance && state.loginScannerActive) {
+    state.loginScannerInstance.stop().then(() => {
+      state.loginScannerActive = false; 
+      state.loginScannerInstance = null;
+      document.getElementById('login-qr-reader').style.display = 'none';
+      document.getElementById('login-qr-placeholder').style.display = '';
+      const btn = document.getElementById('btn-login-scan');
+      btn.innerHTML = '📷 Mulai Scan';
+      btn.classList.replace('btn-danger', 'btn-success');
+    });
+  }
+}
+
+function onLoginQRScanned(text) {
+  const match = text.match(/^NUTRITAG:(.+)$/);
+  if (match) {
+    const id = match[1];
+    const victim = state.victims.find(x => x.id === id);
+    if (victim) { 
+      showToast(`Login berhasil sebagai ${victim.name}!`, 'success');
+      state.pohonUser = victim;
+      state.currentUserRole = 'pengguna';
+      enterApp();
+    } else {
+      showToast('QR tidak terdaftar.', 'error');
+    }
+  } else {
+    showToast('Format QR tidak valid.', 'error');
+  }
 }
 
 function enterApp() {
