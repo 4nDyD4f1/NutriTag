@@ -108,6 +108,15 @@ function initApp() {
   // Render Map
   initMap();
   renderShelterList();
+  
+  // Hide Loading Screen
+  setTimeout(() => {
+    const loadingScreen = document.getElementById('loading-screen');
+    if (loadingScreen) {
+      loadingScreen.classList.add('fade-out');
+      setTimeout(() => loadingScreen.style.display = 'none', 500); // Wait for transition
+    }
+  }, 1500); // 1.5s artificial delay for effect
 }
 
 function initMap() {
