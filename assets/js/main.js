@@ -406,21 +406,29 @@ function getBMICategory(bmi, age) {
   return bmi < 18.5 ? 'underweight' : (bmi >= 25 ? 'overweight' : 'normal');
 }
 
-function calculateDailyTargets(weight, heightCm, age, gender) {
-  let bmr;
-  if (age < 1) bmr = weight * 95;
-  else if (age < 3) bmr = weight * 85;
-  else if (age < 5) bmr = weight * 80;
-  else if (age <= 10) bmr = ((gender === 'male' ? 19.59 : 16.97) * weight) + ((gender === 'male' ? 130.3 : 161.8) * (heightCm / 100)) + (gender === 'male' ? 414.9 : 371.2) * 1.3;
-  else if (age <= 12) bmr = ((gender === 'male' ? 16.25 : 8.365) * weight) + ((gender === 'male' ? 137.2 : 465) * (heightCm / 100)) + (gender === 'male' ? 515.5 : 200) * 1.3;
-  else bmr = ((10 * weight) + (6.25 * heightCm) - (5 * age) + (gender === 'male' ? 5 : -161)) * 1.3;
+function getAKGCalories(age, gender) {
+  if (age < 1) return 700;
+  if (age <= 3) return 1050;
+  if (age <= 6) return 1400;
+  if (age <= 9) return 1650;
+  if (age <= 12) return gender === 'male' ? 2000 : 1900;
+  if (age <= 15) return gender === 'male' ? 2400 : 2050;
+  if (age <= 18) return gender === 'male' ? 2650 : 2100;
+  if (age <= 29) return gender === 'male' ? 2650 : 2250;
+  if (age <= 49) return gender === 'male' ? 2550 : 2150;
+  if (age <= 64) return gender === 'male' ? 2150 : 1800;
+  return gender === 'male' ? 1800 : 1550;
+}
 
-  const calories = Math.round(bmr);
+function calculateDailyTargets(weight, heightCm, age, gender) {
+  // Menggunakan Pendekatan Tabel AKG (Angka Kecukupan Gizi) Indonesia
+  const calories = getAKGCalories(age, gender);
+  
   return {
     calories,
-    protein: Math.round((calories * 0.20) / 4),
-    carbs: Math.round((calories * 0.55) / 4),
-    fat: Math.round((calories * 0.25) / 9),
+    protein: Math.round((calories * 0.15) / 4), // 15% dari kalori
+    carbs: Math.round((calories * 0.60) / 4), // 60% dari kalori
+    fat: Math.round((calories * 0.25) / 9), // 25% dari kalori
     calcium: age < 1 ? 260 : (age <= 3 ? 700 : (age <= 18 ? 1300 : 1000))
   };
 }
@@ -428,6 +436,62 @@ function calculateDailyTargets(weight, heightCm, age, gender) {
 // ==========================================
 // INTAKE & TREE STATE LOGIC
 // ==========================================
+
+function getOmprengRecommendation(victim) {
+  const pkg = victim.package;
+  const t = victim.dailyTargets;
+  
+  // 1 meal = 33% of daily target
+  const mealCal = Math.round(t.calories * 0.33);
+  const mealCarbs = Math.round(t.carbs * 0.33); 
+  const mealProtein = Math.round(t.protein * 0.33); 
+  
+  // Convert macro to rough food weight
+  // Rice is ~30% carbs. So 50g carbs = ~165g rice.
+  let riceWeight = Math.round(mealCarbs / 0.3); 
+  // Protein food (chicken/egg/tempeh) is ~20% protein. So 20g protein = 100g food.
+  let proteinWeight = Math.round(mealProtein / 0.2);
+  let veggieWeight = 100; // Base 100g
+  
+  let title = '', desc = '', icon = '', color = '';
+  
+  if (pkg === 'A') { // Overweight -> Diet
+    title = `Ompreng A (Diet & Kontrol)`;
+    icon = '🟧'; color = 'var(--warning-dark)';
+    riceWeight = Math.round(riceWeight * 0.7); // reduce carbs
+    veggieWeight = 150; // more veggies
+    
+    desc = `<strong>Target 1x Makan: ~${mealCal} kkal (33% Harian)</strong><br><br>
+    <em>Terjemahan Porsi (Pendekatan AKG):</em><br>
+    • 🍚 Nasi/Karbohidrat: <b>~${riceWeight} gram</b> (Porsi kurangi)<br>
+    • 🍗 Lauk Protein: <b>~${proteinWeight} gram</b> (Tanpa lemak)<br>
+    • 🥦 Sayur & Buah: <b>~${veggieWeight} gram</b> (Porsi perbanyak)<br><br>
+    <em>Fokus: Defisit kalori, hindari minyak berlebih.</em>`;
+  } else if (pkg === 'C') { // Underweight -> Recovery
+    title = `Ompreng C (Pemulihan & Ekstra Kalori)`;
+    icon = '🟥'; color = 'var(--danger)';
+    riceWeight = Math.round(riceWeight * 1.2); // extra carbs
+    proteinWeight = Math.round(proteinWeight * 1.2); // extra protein
+    
+    desc = `<strong>Target 1x Makan: ~${mealCal} kkal (33% Harian)</strong><br><br>
+    <em>Terjemahan Porsi (Pendekatan AKG):</em><br>
+    • 🍚 Nasi/Karbohidrat: <b>~${riceWeight} gram</b> (Porsi ekstra)<br>
+    • 🍗 Lauk Protein: <b>~${proteinWeight} gram</b> (Sangat penting)<br>
+    • 🥦 Sayur & Buah: <b>~${veggieWeight} gram</b><br><br>
+    <em>Fokus: Surplus kalori. Beri tambahan susu/snack jika ada.</em>`;
+  } else { // Normal
+    title = `Ompreng B (Gizi Seimbang)`;
+    icon = '🟩'; color = 'var(--success)';
+    
+    desc = `<strong>Target 1x Makan: ~${mealCal} kkal (33% Harian)</strong><br><br>
+    <em>Terjemahan Porsi (Pendekatan AKG):</em><br>
+    • 🍚 Nasi/Karbohidrat: <b>~${riceWeight} gram</b><br>
+    • 🍗 Lauk Protein: <b>~${proteinWeight} gram</b><br>
+    • 🥦 Sayur & Buah: <b>~${veggieWeight} gram</b><br><br>
+    <em>Fokus: Gizi seimbang sesuai Pedoman Isi Piringku.</em>`;
+  }
+  return { title, desc, icon, color };
+}
 
 function getTodayIntake(victimId) {
   const today = getToday();
@@ -534,6 +598,16 @@ function showRegistrationResult(victim) {
     <div class="card-stat blue animate-in"><div class="stat-label">BMI</div><div class="stat-value blue">${victim.bmi}</div></div>
     <div class="card-stat green animate-in"><div class="stat-label">Calories</div><div class="stat-value green">${victim.dailyTargets.calories}</div></div>
     <div class="card-stat amber animate-in"><div class="stat-label">Protein</div><div class="stat-value amber">${victim.dailyTargets.protein}</div></div>
+  `;
+  
+  const rec = getOmprengRecommendation(victim);
+  document.getElementById('result-ompreng-reco').innerHTML = `
+    <div style="background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:16px;">
+      <h3 style="font-size:14px; color:${rec.color}; margin-bottom:8px; display:flex; align-items:center; gap:6px;">
+        <span>${rec.icon}</span> ${rec.title}
+      </h3>
+      <p style="font-size:13px; color:var(--text); line-height:1.5;">${rec.desc}</p>
+    </div>
   `;
 }
 
@@ -676,6 +750,12 @@ function renderKitchenPage() {
       <div class="meal-log-kcal">${m.cal} kcal</div>
     </div>
   `).join('');
+  
+  // Populate manual scan dropdown
+  const select = document.getElementById('manual-scan-input');
+  select.innerHTML = '<option value="" disabled selected>Pilih Penghuni (Manual Scan)</option>' + 
+    state.victims.map(v => `<option value="${v.id}">${v.name} (${v.id})</option>`).join('');
+    
   if (state.scanTarget) showScannedProfile(state.scanTarget);
 }
 
@@ -712,7 +792,12 @@ function onQRScanned(text) {
 }
 
 function manualScanLookup() {
-  const id = document.getElementById('manual-scan-input').value.trim().toUpperCase();
+  const select = document.getElementById('manual-scan-input');
+  const id = select.value;
+  if (!id) {
+    showToast('Pilih penghuni terlebih dahulu', 'error');
+    return;
+  }
   const v = state.victims.find(x => x.id === id);
   if(v) { state.scanTarget = v; showScannedProfile(v); }
 }
@@ -737,6 +822,14 @@ function showScannedProfile(v) {
     <div class="macro-item"><div class="macro-item-value">${t.fat}</div><div class="macro-item-label">Fat</div></div>
     <div class="macro-item"><div class="macro-item-value">${t.calcium}</div><div class="macro-item-label">Calc</div></div>
   `;
+  
+  const rec = getOmprengRecommendation(v);
+  document.getElementById('scan-ompreng-card').style.display = 'block';
+  document.getElementById('scan-ompreng-title').textContent = rec.title;
+  document.getElementById('scan-ompreng-title').style.color = rec.color;
+  document.getElementById('scan-ompreng-icon').textContent = rec.icon;
+  document.getElementById('scan-ompreng-desc').innerHTML = rec.desc;
+  
   updateScanProgress(v);
 }
 
@@ -816,9 +909,45 @@ function renderMonitoringTable() {
         <td><div class="progress-bar" style="width:100px"><div class="progress-fill green" style="width:${pct}%"></div></div></td>
         <td>${ts}</td>
         <td>${alert?'<span class="badge badge-danger">Alert</span>':'OK'}</td>
+        <td><button class="btn btn-outline btn-sm" onclick="showMonitoringDetail('${v.id}')">🔍 Detail</button></td>
       </tr>
     `;
   }).join('');
+}
+
+function showMonitoringDetail(id) {
+  const v = state.victims.find(x => x.id === id);
+  if (!v) return;
+  
+  document.getElementById('md-name').innerHTML = `${v.name} <small style="color:var(--text-muted);font-size:12px;font-weight:normal;">${v.id}</small>`;
+  
+  const t = v.dailyTargets;
+  document.getElementById('md-targets').innerHTML = `
+    <div class="macro-item"><div class="macro-item-value">${t.calories}</div><div class="macro-item-label">kcal</div></div>
+    <div class="macro-item"><div class="macro-item-value">${t.protein}</div><div class="macro-item-label">Prot</div></div>
+    <div class="macro-item"><div class="macro-item-value">${t.carbs}</div><div class="macro-item-label">Carb</div></div>
+    <div class="macro-item"><div class="macro-item-value">${t.fat}</div><div class="macro-item-label">Fat</div></div>
+  `;
+  
+  const rec = getOmprengRecommendation(v);
+  document.getElementById('md-ompreng-title').textContent = rec.title;
+  document.getElementById('md-ompreng-title').style.color = rec.color;
+  document.getElementById('md-ompreng-title').innerHTML = `<span>${rec.icon}</span> ` + document.getElementById('md-ompreng-title').innerHTML;
+  document.getElementById('md-ompreng-desc').innerHTML = rec.desc;
+  
+  const intake = getTodayIntake(v.id);
+  const pct = Math.min(100, (intake.calories / t.calories) * 100);
+  document.getElementById('md-progress-bars').innerHTML = `
+    <div class="progress-group" style="margin-bottom:0;"><div class="progress-label"><span>Progress Hari Ini (Kalori)</span><span>${intake.calories}/${t.calories} kcal</span></div><div class="progress-bar"><div class="progress-fill green" style="width:${pct}%"></div></div></div>
+  `;
+  
+  document.getElementById('modal-monitoring-detail').classList.remove('hidden');
+  document.getElementById('modal-monitoring-detail').style.display = 'flex';
+}
+
+function closeMonitoringDetail() {
+  document.getElementById('modal-monitoring-detail').classList.add('hidden');
+  document.getElementById('modal-monitoring-detail').style.display = 'none';
 }
 
 

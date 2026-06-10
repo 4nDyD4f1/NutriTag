@@ -333,6 +333,10 @@
                 <h2>Success <small id="result-name-display"></small></h2>
               </div>
               <div class="grid-3" id="result-macros"></div>
+              
+              <!-- Ompreng Reco -->
+              <div class="mt-16" id="result-ompreng-reco"></div>
+
               <div class="divider"></div>
               <div style="background:var(--warning-light);padding:14px;border-radius:var(--radius);border:1px solid #fde68a;">
                 <p style="font-size:12px;font-weight:700;color:#92400e;">🔑 Account Created</p>
@@ -401,7 +405,9 @@
               </div>
               <div class="scanner-controls">
                 <button class="btn btn-primary btn-sm" id="btn-start-scan" onclick="toggleScanner()">📷 Start Scanner</button>
-                <input type="text" class="form-input" id="manual-scan-input" placeholder="Enter ID manually" style="flex:1;padding:8px;font-size:12px;">
+                <select class="form-select" id="manual-scan-input" style="flex:1;padding:8px;font-size:12px;">
+                  <option value="" disabled selected>Pilih Penghuni (Manual Scan)</option>
+                </select>
                 <button class="btn btn-outline btn-sm" onclick="manualScanLookup()">Look Up</button>
               </div>
             </div>
@@ -418,9 +424,17 @@
                   <div style="margin-left:auto;" id="scan-badges"></div>
                 </div>
                 <div class="macro-grid" id="scan-targets"></div>
+                <div class="divider"></div>
+                <div class="scan-progress-bars" id="scan-progress-bars"></div>
+              </div>
+              
+              <!-- Ompreng Reco for Kitchen Scan -->
+              <div class="card mb-16" id="scan-ompreng-card" style="display:none;">
+                <div class="card-header"><div class="card-header-icon" id="scan-ompreng-icon">🍱</div><h2 id="scan-ompreng-title">Rekomendasi Ompreng</h2></div>
+                <div id="scan-ompreng-desc" style="font-size:13px; color:var(--text); line-height:1.5;"></div>
               </div>
 
-              <!-- Progress -->
+              <!-- Log Meal Form -->
               <div class="card mb-16">
                 <div class="card-header"><div class="card-header-icon green">📈</div><h2>Today's Progress</h2></div>
                 <div id="scan-progress-bars"></div>
@@ -507,7 +521,7 @@
           </div>
           <div style="overflow-x:auto;">
             <table class="data-table">
-              <thead><tr><th>Resident</th><th>Age</th><th>BMI</th><th>Cal</th><th>Progress</th><th>Tree</th><th>Alert</th></tr></thead>
+              <thead><tr><th>Resident</th><th>Age</th><th>BMI</th><th>Cal</th><th>Progress</th><th>Tree</th><th>Alert</th><th>Action</th></tr></thead>
               <tbody id="monitoring-table-body"></tbody>
             </table>
           </div>
@@ -515,6 +529,22 @@
       </section>
 
     </main>
+  </div>
+
+  <!-- ===== MODAL: MONITORING DETAIL ===== -->
+  <div class="fullscreen-page hidden" id="modal-monitoring-detail" style="background: rgba(0,0,0,0.5); z-index: 2000; align-items: center; padding: 20px;">
+    <div class="card" style="width: 100%; max-width: 500px; margin: auto; max-height: 90vh; overflow-y: auto;">
+      <div class="flex-between mb-16">
+        <h2 id="md-name" style="font-weight:800; font-size:20px;">Name</h2>
+        <button class="btn btn-ghost" onclick="closeMonitoringDetail()">✖</button>
+      </div>
+      <div class="macro-grid" id="md-targets" style="margin-bottom:16px;"></div>
+      <div id="md-ompreng-card" style="background:var(--bg); border:1px solid var(--border); border-radius:var(--radius); padding:16px; margin-bottom:16px;">
+        <h3 style="font-size:14px; margin-bottom:8px; display:flex; align-items:center; gap:6px;" id="md-ompreng-title">Ompreng</h3>
+        <p style="font-size:13px; color:var(--text); line-height:1.5;" id="md-ompreng-desc">Details</p>
+      </div>
+      <div id="md-progress-bars"></div>
+    </div>
   </div>
 
   <!-- ===== PRINT AREA ===== -->
